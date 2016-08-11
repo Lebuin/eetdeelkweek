@@ -28,7 +28,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#" onClick="filter_points('all');map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})">Eetdeelkweek</a>
+            <a class="navbar-brand" id="Homereset" href="#">Eetdeelkweek</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -39,13 +39,15 @@
                        Categorie
                    <span class="caret"></span>
                    </a>
-                   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                        <li><a href="#" onClick='filter_points("voeding")'><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="orange" fill="orange"></circle></svg>Voeding</a></li>
-                        <li><a href="#" onClick='filter_points("energie & mobiliteit")'><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="green" fill="green"></circle></svg>Energie & mobiliteit</a></li>
-                        <li><a href="#" onClick='filter_points("consuminderen")'><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="blue" fill="blue"></circle></svg>Consuminderen</a></li>
-                        <li><a href="#" onClick='filter_points("kennis")'><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="red" fill="red"></circle></svg>Kennis Maken</a></li>
-                        <li><a href="#" onClick='filter_points("democratie")'><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="yellow" fill="yellow"></circle></svg>Democratie</a></li>
-                        <li><a href="#"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="purple" fill="purple"></circle></svg>Geen categorie</a></li>
+                   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" id="categorieDropdown">
+                        <li><a href="#" name="voeding"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="orange" fill="orange"></circle></svg>Voeding</a></li>
+                        <li><a href="#" name="energie"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="green" fill="green"></circle></svg>Energie</a></li>
+                        <li><a href="#" name="mobiliteit"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="yellow" fill="yellow"></circle></svg>Mobiliteit</a></li>
+                        <li><a href="#" name="wonen"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="#58fa3c" fill="#58fa3c"></circle></svg>Wonen</a></li>
+                        <li><a href="#" name="consuminderen"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="blue" fill="blue"></circle></svg>Consuminderen</a></li>
+                        <li><a href="#" name="leer"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="red" fill="red"></circle></svg>Leer</a></li>
+                        
+                        <li><a href="#" name="geen categorie"><svg width="15" height="10"><circle cx="5" cy="5" r="5" stroke="purple" fill="purple"></circle></svg>Geen categorie</a></li>
                    </ul>
                </li>
 
@@ -65,7 +67,7 @@
 </nav>
 <div class="container-fluid" style="">
 
-        <div class="col-md-9 col-xs-12" style="">
+        <div class="col-sm-9 col-md-9 col-xs-9" style="">
             <p/>
             <div id="map" class="" style="height:50%">
 
@@ -74,9 +76,12 @@
             <div class="grid" id="thumbnails" style="">
 
             </div>
+            <hr></hr>
+            <div class="grid2" id="thumbnailsNoLocation">
+            </div>
         </div>
 
-            <div class="col-md-3 col-xs-12 col-sm-12 hidden-md-down" id="panel" style="">
+            <div class="col-md-3 col-xs-3 col-sm-3 hidden-md-down" id="panel" style="">
                 <h3>Intro</h3>
                 <p>Welkom op de EetDeelKweek website!</p>
                 <p>Op deze pagina willen we de transitie initiatieven in en rond Gent een plaatsje geven</p>

@@ -27,6 +27,7 @@ window.onload = function() {
             map.removeLayer(wijk)
             }catch(err){}
         wijk=L.geoJson(wijken.features[num],{color:'green','weight':2,dashArray:'10 10'}).addTo(map)
+        filter_points({'wijk':wijken.features[num]})
     }
     // define marker layer
     var geojsonMarkerOptions = function(feature){
@@ -37,10 +38,11 @@ window.onload = function() {
 
         switch (feature.properties.categorie) {
             case "voeding": style.fillColor='orange';return style;
-            case "energie & mobiliteit": style.fillColor='green';return style;
+            case "energie": style.fillColor='green';return style;
+            case "woon": style.fillColor='#58fa3c';return style;
+            case "mobiliteit": style.fillColor='yellow';return style;
             case "consuminderen": style.fillColor='blue'; return style;
-            case "kennis":style.fillColor='red';return style;
-            case "democratie":style.fillColor='yellow';return style;
+            case "leer":style.fillColor='red';return style;
             case "":style.fillColor='purple';return style;
         };
 
@@ -156,32 +158,48 @@ window.onload = function() {
 
 
     filters={}
+    selection = []
     // define filtering on marker layer
     function filter_points(cat) {
-        if (cat===undefined){
-            cat=false
+        
+        if (_.isEmpty(cat)){
+            filters = {};
+            selection = features;
+        } else {
+            _.forEach(cat, (value,key)=>{
+                filters[key]=value
+            })
         }
-        if (typeof selection != 'undefined') {
-            old_selection=selection
-        } else{old_selection=features}
 
-        if (cat!=false) {
-            filters['categorie']=cat
-        }
-
+        if (!_.isEmpty(selection)) {old_selection = selection;selection=features} else {old_selection = features; selection=features}
 
         try {
                 map.removeEventListener('mouseover')
                 map.removeEventListener('click')
                 map.removeLayer(points)
 
-        } catch (e){}
+        } catch (e){
 
-        if ("categorie" in filters && filters["categorie"]!='all') {
-            selection = turf.filter(features,'categorie',filters["categorie"])
-        } else {
-            selection = features
         }
+
+        if (_.has(filters, 'categorie')){
+            selection = turf.filter(selection,'categorie',filters["categorie"])
+        }
+        if (_.has(filters,'wijk')){
+            selection = turf.within(selection, turf.featurecollection([filters.wijk]))
+        }
+        //s
+        //sif ("categorie" in filters && filters["categorie"]!='all') {
+        //s    selection = turf.filter(selection,'categorie',filters["categorie"])
+        //s} else if ("wijk" in filters) {
+        //s    console.log(filters.wijk)
+        //s    console.log(features)
+        //s    selection = turf.within(features, turf.featurecollection([filters.wijk]))
+        //s    console.log(selection)
+        //s    //selection = turf.within(features,)
+        //s} else {
+        //s    selection = features
+        //s}
         nocoords=[]
         for (i=0;i<selection.features.length;i++) {
             if (parseFloat(selection.features[i].properties.latitude)==0) {
@@ -317,9 +335,9 @@ window.onload = function() {
             }
 
             $('#thumbnails').html(thumbnaildiv)
-            map.addEventListener('dragend',function(){filter_points(cat=false)})
-            map.addEventListener('zoomend',function(){filter_points(cat=false)})
-            map.addEventListener('autopanstart',function(){filter_points(cat=false)})
+            map.addEventListener('dragend',function(){filter_points({'move':true})})
+            map.addEventListener('zoomend',function(){filter_points({'move':true})})
+            map.addEventListener('autopanstart',function(){filter_points({'move':true})})
             $grid=$('.grid').masonry({
                 columnWidth:'.grid-item',
                 itemSelector:'.grid-item',
@@ -335,4 +353,13 @@ window.onload = function() {
             console.log("failed");
         }
     });
+
+    $('#categorieDropdown a').click(function(){
+        let name = $(this).attr('name')
+        filter_points({'categorie':name})
+    })
+
+    $('#Homereset').click(()=>{
+        filter_points({});
+        map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
 }
