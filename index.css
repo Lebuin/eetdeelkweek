@@ -1,0 +1,39 @@
+body { height:100%;padding-top: 50px;}
+.leaflet-clickable{
+    animation:flow 3s  infinite
+}
+@keyframes explode {
+    0% {
+
+        Opacity:1
+    }
+    100%{
+
+
+        Opacity:0
+    }
+}
+@keyframes flow {
+    0% {
+        opacity:.5
+    }
+    50% {
+        opacity:1
+    }
+    100% {
+        opacity:0.5
+    }
+}
+.scrollable-menu {
+    height:auto;
+    max-height:300px;
+    overflow-x:hidden;
+}
+.col-md-3{
+    top:50;bottom:10;right:0;position:fixed;overflow-y:auto
+}
+.grid-sizer,
+.grid-item{
+
+    width:24%;
+}
