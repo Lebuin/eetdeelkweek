@@ -38,11 +38,9 @@ window.onload = function() {
 
         switch (feature.properties.categorie) {
             case "voeding": style.fillColor='orange';return style;
-            case "energie": style.fillColor='green';return style;
             case "woon": style.fillColor='#58fa3c';return style;
             case "mobiliteit": style.fillColor='yellow';return style;
             case "consuminderen": style.fillColor='blue'; return style;
-            case "leer":style.fillColor='red';return style;
             case "":style.fillColor='purple';return style;
         };
 
@@ -175,6 +173,7 @@ window.onload = function() {
         }
 
         if (_.has(filters, 'categorie')){
+            console.log(filters.categorie)
             selection = turf.filter(selection,'categorie',filters["categorie"])
         }
         if (_.has(filters,'wijk')){
@@ -459,5 +458,6 @@ window.onload = function() {
 
     $('#Homereset').click(()=>{
         filter_points({});
+        map.removeLayer(wijk)
         map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
 }
