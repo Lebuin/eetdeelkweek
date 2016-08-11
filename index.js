@@ -153,7 +153,7 @@ window.onload = function() {
     selection = []
     // define filtering on marker layer
     function filter_points(cat) {
-        
+
         if (_.isEmpty(cat)){
             filters = {};
             selection = features;
@@ -357,12 +357,7 @@ window.onload = function() {
             var rows = CSVToArray(response);
             var header = rows[0];
             for(var i = 1; i < rows.length; i++) {
-                var rawRow = rows[i];
-                var row = _.map(rawRow, function(field) {
-                    return field.replace('\\r', '').replace('\\n', '<br/>');
-                });
-
-                var item = _.zipObject(header, row);
+                var item = _.zipObject(header, rows[i]);
 
                 // Ignore items without categorie
                 if(item.categorie, i) {
