@@ -259,7 +259,7 @@ window.onload = function() {
         contentType: "application/json",
         dataType: "json",
         success: function (response) {
-            //console.log(response)
+            console.log(response)
             thumbnails={}
 
             function addrow(element,index,value) {
