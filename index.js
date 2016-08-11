@@ -110,14 +110,6 @@ window.onload = function() {
 
 
             });
-
-
-            function addTag(element,index,value) {
-                //console.log(element.replace(/ /g,''))
-                $('#panel').append('<span class="badge badge-primary">'+element.replace(/ /g,'')+'</span>')
-            }
-
-            properties.tags.split(",").forEach(addTag)
         }
         $grid.on("mouseover",'.grid-item',function(){
 
@@ -271,50 +263,157 @@ window.onload = function() {
         })
     }
 
+
+
+    function CSVToArray( strData, strDelimiter ){
+            // Check to see if the delimiter is defined. If not,
+            // then default to comma.
+            strDelimiter = (strDelimiter || ",");
+
+            // Create a regular expression to parse the CSV values.
+            var objPattern = new RegExp(
+                (
+                    // Delimiters.
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                    // Quoted fields.
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                    // Standard fields.
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                ),
+                "gi"
+                );
+
+
+            // Create an array to hold our data. Give the array
+            // a default empty first row.
+            var arrData = [[]];
+
+            // Create an array to hold our individual pattern
+            // matching groups.
+            var arrMatches = null;
+
+
+            // Keep looping over the regular expression matches
+            // until we can no longer find a match.
+            while (arrMatches = objPattern.exec( strData )){
+
+                // Get the delimiter that was found.
+                var strMatchedDelimiter = arrMatches[ 1 ];
+
+                // Check to see if the given delimiter has a length
+                // (is not the start of string) and if it matches
+                // field delimiter. If id does not, then we know
+                // that this delimiter is a row delimiter.
+                if (
+                    strMatchedDelimiter.length &&
+                    strMatchedDelimiter !== strDelimiter
+                    ){
+
+                    // Since we have reached a new row of data,
+                    // add an empty row to our data array.
+                    arrData.push( [] );
+
+                }
+
+                var strMatchedValue;
+
+                // Now that we have our delimiter out of the way,
+                // let's check to see which kind of value we
+                // captured (quoted or unquoted).
+                if (arrMatches[ 2 ]){
+
+                    // We found a quoted value. When we capture
+                    // this value, unescape any double quotes.
+                    strMatchedValue = arrMatches[ 2 ].replace(
+                        new RegExp( "\"\"", "g" ),
+                        "\""
+                        );
+
+                } else {
+
+                    // We found a non-quoted value.
+                    strMatchedValue = arrMatches[ 3 ];
+
+                }
+
+
+                // Now that we have our value string, let's add
+                // it to the data array.
+                arrData[ arrData.length - 1 ].push( strMatchedValue );
+            }
+
+            // Return the parsed data.
+            return( arrData );
+        }
+
     $.ajax({
         type: "GET",
-        url: "https://api.mlab.com/api/1/databases/eetdeelkweek/collections/organisaties?apiKey=zZCeZ97nlxBLNXmmmUHNj_VbBM3K9Ady",
-        contentType: "application/json",
-        dataType: "json",
-        success: function (response) {
-            console.log(response)
-            thumbnails={}
+        url: "items.csv",
+        success: function(response) {
+            thumbnails={};
 
-            function addrow(element,index,value) {
-                //console.log(element)
-                $('#tabel').append("<tr><td><a href='"+element.gwebsite+"'>"+element.naam+"</a></td><td><a href='#' onClick='filter_points(\""+element.categorie+"\")'>"+element.categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+element._id.$oid+"')\">Delete in database</button></td></tr>")
+            var rows = CSVToArray(response);
+            var header = rows[0];
+            for(var i = 1; i < rows.length; i++) {
+                var rawRow = rows[i];
+                var row = _.map(rawRow, function(field) {
+                    return field.replace('\\r', '').replace('\\n', '<br/>');
+                });
 
-                var thumbnail = "<div class='"+element.categorie.replace('"',"").split()[0]+" grid-item thumbnail' id='"+element._id.$oid+"' >\
-                                    <img class='img-responsive' style='margin:0' src='images/"+element.foto.split('.')[0].concat('.png')+"'>\
-                                    <div class='caption'>\
-                                        <h5 style='text-align:center'>"+element.naam
-                if (parseFloat(element.latitude)==0) {
-                    thumbnail+='&nbsp<span class="glyphicon glyphicon-globe"></span>'
-                }
-                thumbnail+=('</h5></div></div>')
-                thumbnails[element._id.$oid]=thumbnail
+                var item = _.zipObject(header, row);
 
-                try {
-                    var point = turf.point(
-                        [parseFloat(element.longitude),parseFloat(element.latitude)],
-                        {"naam":element.naam,
-                        "website":element.website,
-                        "categorie":element.categorie,
-                        "tags":element.tags,
-                        "foto":element.foto.split('.')[0].concat('.png'),
-                        "tekstje":element.tekstje,
-                        "oid":element._id.$oid,
-                        "latitude":element.latitude,
-                        "longitude":element.longitude,
-                        })
-
-                    points.addData(point)
-                } catch(e) {
-                    //console.log("error with:",element)
+                // Ignore items without categorie
+                if(item.categorie, i) {
+                    addrow(item, i);
                 }
             }
 
-            response.forEach(addrow)
+
+            function addrow(element, index, value) {
+                var naam = element.naam;
+                var website = element.website;
+                var categorie = element.categorie;
+                var categorie2 = element.categorie2;
+                var foto = element.foto.split('.')[0].concat('.png');
+                var tekstje = element.tekstje;
+                var latitude = parseFloat(element.latitude);
+                var longitude = parseFloat(element.longitude);
+
+                if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
+                    latitude = 0;
+                    longitude = 0;
+                }
+
+                console.log(element);
+                $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
+
+                var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
+                                    <img class='img-responsive' style='margin:0' src='images/"+foto+"'>\
+                                    <div class='caption'>\
+                                        <h5 style='text-align:center'>"+naam
+                if (latitude == 0) {
+                    thumbnail += '&nbsp<span class="glyphicon glyphicon-globe"></span>'
+                }
+                thumbnail += '</h5></div></div>';
+                thumbnails[index] = thumbnail;
+
+                var point = turf.point([longitude, latitude], {
+                    "naam": naam,
+                    "website": website,
+                    "categorie": categorie,
+                    "foto": foto,
+                    "tekstje": tekstje,
+                    "oid": index,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                });
+
+                points.addData(point)
+            }
+
+
             features=points.toGeoJSON()
             featuredict = {}
             for (i in features.features) {
@@ -349,8 +448,7 @@ window.onload = function() {
 
         },
         error: function (response){
-
-            console.log("failed");
+            console.log('failed to load items.csv');
         }
     });
 
