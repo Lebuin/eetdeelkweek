@@ -1,3 +1,21 @@
+templates = {};
+templates.thumbnail = '\
+<div class="<%= categorie %> grid-item thumbnail" id="<%= id %>">\
+    <img class="img-responsive" style="margin:0" src="images/<%= foto %>" />\
+    <div class="caption">\
+        <h5 style="text-align:center">\
+            <%= naam %>\
+        </h5>\
+    </div>\
+</div>';
+
+
+var compileTemplate = {};
+for(var key in templates) {
+    compileTemplate[key] = _.template(templates[key]);
+}
+
+
 window.onload = function() {
 
     // map initialisation
@@ -22,7 +40,7 @@ window.onload = function() {
                             $('#wijkenMenu').append('<li><a href="#" onclick="fitbounds('+a+');"\
                             \
                             >'+c.properties.naam+'</a></li>')})
-    
+
     fitbounds=function(num){
         b=turf.extent(wijken.features[num])
         map.fitBounds([[b[1],b[0]],[b[3],b[2]]])
@@ -213,27 +231,23 @@ window.onload = function() {
             new_oids.push(selection.features[item].properties.oid)
         }
 
-        removed_ids=[]
-        added_ids=[]
-        for (i in selection.features){
-            if ($.inArray(selection.features[i].properties.oid,old_oids)==-1) {
-                added_ids.push(selection.features[i].properties.oid)
-            }
-        }
-        for (i in old_selection.features){
-            if ($.inArray(old_selection.features[i].properties.oid,new_oids)==-1) {
-                removed_ids.push(old_selection.features[i].properties.oid)
-            }
-        }
 
-        for (i in removed_ids) {
-            var $item=$('#'+removed_ids[i])
-            $grid.masonry("remove",$item).masonry("layout")
+        for (i in selection.features){
+            var properties = selection.features[i].properties;
+
+            if($.inArray(properties.oid, old_oids)==-1) {
+                $('#thumbnails').append(properties.thumbnail);
+                $item = $('#' + properties.oid);
+                $grid.prepend($item).masonry("prepended", $item);
+            }
         }
-        for (i in added_ids) {
-            $('#thumbnails').append(thumbnails[added_ids[i]])
-            $item=$('#'+added_ids[i])
-            $grid.prepend($item).masonry("prepended",$item)
+        for (i in old_selection.features) {
+            var properties = old_selection.features[i].properties
+
+            if($.inArray(properties.oid, new_oids)==-1) {
+                var $item = $('#' + properties.oid);
+                $grid.masonry("remove", $item).masonry("layout")
+            }
         }
 
         //for (i in added_keys.names){
@@ -263,7 +277,6 @@ window.onload = function() {
             }
         })
     }
-
 
 
     function CSVToArray( strData, strDelimiter ){
@@ -358,14 +371,15 @@ window.onload = function() {
             thumbnails={};
             thumbnails_noloc={};
             let points_noloc = []
+
             var rows = CSVToArray(response);
             var header = rows[0];
             for(var i = 1; i < rows.length; i++) {
                 var item = _.zipObject(header, rows[i]);
 
                 // Ignore items without categorie
-                if(item.categorie, i) {
-                    addrow(item, i);
+                if(item.categorie) {
+                    addrow(item, i, points, thumbnails);
                 }
             }
 
@@ -385,7 +399,7 @@ window.onload = function() {
                     longitude = 0;
                 }
 
-            
+
                 $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
 
                 var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
@@ -407,35 +421,30 @@ window.onload = function() {
                     "oid": index,
                     "latitude": latitude,
                     "longitude": longitude,
+                    "thumbnail": thumbnail,
                 });
-                if (point.properties.latitude != 0) {
-                    thumbnails[index] = thumbnail;
-                    points.addData(point)
-                } else {
-                    thumbnails_noloc[index]=thumbnail;
-                    points_noloc.push(point)
-                }
-            }   
+
+                points.addData(point);
+            }
 
 
             features=points.toGeoJSON()
             features_noloc = _.filter(points_noloc,'properties.oid')
-            featuredict = {}
+
+            featuredict = {};
+            thumbnaildiv = [];
             _.forEach(features.features, value=>{
-                featuredict[value.properties.oid] = value.properties
-            })
-            featuredict_noloc = {}
+                featuredict[value.properties.oid] = value.properties;
+                thumbnaildiv.push(value.properties.thumbnail);
+            });
+
+            featuredict_noloc = {};
+            thumbnaildiv_noloc = [];
             _.forEach(features_noloc,value=>{
                 featuredict_noloc[value.properties.oid] = value.properties
+                thumbnaildiv_noloc.push(value.properties.thumbnail);
             })
-            thumbnaildiv=[]
-            _.forEach(thumbnails, (value,key)=>{
-                thumbnaildiv.push(value)
-            })
-            thumbnaildiv_noloc=[]
-            _.forEach(thumbnails_noloc, (value,key)=>{
-                thumbnaildiv_noloc.push(value)
-            })
+
             //var keys = _.keys(thumbnails)
             //keys.sort()
             //thumbnaildiv=[]
@@ -459,7 +468,7 @@ window.onload = function() {
                 itemSelector:'.grid-item',
                 gutter:10
             })
-            
+
             $grid.imagesLoaded(function(){$grid.masonry('layout')})
             $grid2.imagesLoaded(function(){$grid2.masonry('layout')})
             eventlisteners()
