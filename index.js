@@ -112,7 +112,7 @@ window.onload = function() {
         }
 
         $grid.on("mouseover",'.grid-item',function(){
-
+            console.log(this)
             that=featuredict[this.id]
             //console.log(that.latitude)
             //if (that.latitude!="0") {
@@ -135,10 +135,10 @@ window.onload = function() {
             d3.selectAll("path").transition().duration(1000).style("opacity",0)
 
             })
-        $grid.on("click",".grid-item",function(){
-                panelfill(featuredict[this.id])
-
-        })
+        $grid.on("click",".grid-item",()=>{panelfill(featuredict[this.id])})
+        $grid2.on("click",".grid-item",()=>{
+            console.log(this.id)
+            panelfill(featuredict_noloc[this.id])})
         points.on("mouseover",function(e){
             panelfill(e.layer.feature.properties)
         });
