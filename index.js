@@ -332,8 +332,8 @@ window.onload = function() {
                 gutter:10
             });
 
-            $grid.imagesLoaded(function(){$grid.masonry('layout')})
-            eventlisteners()
+            $grid.imagesLoaded(function(){$grid.masonry('layout')});
+            eventlisteners();
 
         },
         error: function (response){
@@ -351,6 +351,8 @@ window.onload = function() {
         map.removeLayer(wijk)
         map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
 }
+
+
 
 
 
