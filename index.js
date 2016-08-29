@@ -1,3 +1,21 @@
+templates = {};
+templates.thumbnail = '\
+<div class="<%= categorie %> grid-item thumbnail" id="<%= id %>">\
+    <img class="img-responsive" style="margin:0" src="images/<%= foto %>" />\
+    <div class="caption">\
+        <h5 style="text-align:center">\
+            <%= naam %>\
+        </h5>\
+    </div>\
+</div>';
+
+
+var compileTemplate = {};
+for(var key in templates) {
+    compileTemplate[key] = _.template(templates[key]);
+}
+
+
 window.onload = function() {
     var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
     var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
@@ -263,95 +281,11 @@ window.onload = function() {
     }
 
 
-
-    function CSVToArray( strData, strDelimiter ){
-            // Check to see if the delimiter is defined. If not,
-            // then default to comma.
-            strDelimiter = (strDelimiter || ",");
-
-            // Create a regular expression to parse the CSV values.
-            var objPattern = new RegExp(
-                (
-                    // Delimiters.
-                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-                    // Quoted fields.
-                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-                    // Standard fields.
-                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                ),
-                "gi"
-                );
-
-
-            // Create an array to hold our data. Give the array
-            // a default empty first row.
-            var arrData = [[]];
-
-            // Create an array to hold our individual pattern
-            // matching groups.
-            var arrMatches = null;
-
-
-            // Keep looping over the regular expression matches
-            // until we can no longer find a match.
-            while (arrMatches = objPattern.exec( strData )){
-
-                // Get the delimiter that was found.
-                var strMatchedDelimiter = arrMatches[ 1 ];
-
-                // Check to see if the given delimiter has a length
-                // (is not the start of string) and if it matches
-                // field delimiter. If id does not, then we know
-                // that this delimiter is a row delimiter.
-                if (
-                    strMatchedDelimiter.length &&
-                    strMatchedDelimiter !== strDelimiter
-                    ){
-
-                    // Since we have reached a new row of data,
-                    // add an empty row to our data array.
-                    arrData.push( [] );
-
-                }
-
-                var strMatchedValue;
-
-                // Now that we have our delimiter out of the way,
-                // let's check to see which kind of value we
-                // captured (quoted or unquoted).
-                if (arrMatches[ 2 ]){
-
-                    // We found a quoted value. When we capture
-                    // this value, unescape any double quotes.
-                    strMatchedValue = arrMatches[ 2 ].replace(
-                        new RegExp( "\"\"", "g" ),
-                        "\""
-                        );
-
-                } else {
-
-                    // We found a non-quoted value.
-                    strMatchedValue = arrMatches[ 3 ];
-
-                }
-
-
-                // Now that we have our value string, let's add
-                // it to the data array.
-                arrData[ arrData.length - 1 ].push( strMatchedValue );
-            }
-
-            // Return the parsed data.
-            return( arrData );
-        }
-
     $.ajax({
         type: "GET",
         url: "items.csv",
         success: function(response) {
-            thumbnails={};
+            var thumbnails = {};
 
             var rows = CSVToArray(response);
             var header = rows[0];
@@ -359,84 +293,45 @@ window.onload = function() {
                 var item = _.zipObject(header, rows[i]);
 
                 // Ignore items without categorie
-                if(item.categorie, i) {
-                    addrow(item, i);
+                if(item.categorie) {
+                    addrow(item, i, points, thumbnails);
                 }
             }
 
 
-            function addrow(element, index, value) {
-                var naam = element.naam;
-                var website = element.website;
-                var categorie = element.categorie;
-                var categorie2 = element.categorie2;
-                var foto = element.foto.split('.')[0].concat('.jpg');
-                var tekstje = element.tekstje;
-                var latitude = parseFloat(element.latitude);
-                var longitude = parseFloat(element.longitude);
-
-                if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
-                    latitude = 0;
-                    longitude = 0;
-                }
-
-                console.log(element);
-                $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
-
-                var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
-                                    <img class='img-responsive' style='margin:0' src='images/"+foto+"'>\
-                                    <div class='caption'>\
-                                        <h5 style='text-align:center'>"+naam
-                if (latitude == 0) {
-                    thumbnail += '&nbsp<span class="glyphicon glyphicon-globe"></span>'
-                }
-                thumbnail += '</h5></div></div>';
-                thumbnails[index] = thumbnail;
-
-                var point = turf.point([longitude, latitude], {
-                    "naam": naam,
-                    "website": website,
-                    "categorie": categorie,
-                    "foto": foto,
-                    "tekstje": tekstje,
-                    "oid": index,
-                    "latitude": latitude,
-                    "longitude": longitude,
-                });
-
-                points.addData(point)
+            var features = points.toGeoJSON();
+            featuredict = {};
+            for(i in features.features) {
+                var key = features.features[i].properties.oid;
+                var value = features.features[i].properties;
+                featuredict[key] = value;
             }
 
 
-            features=points.toGeoJSON()
-            featuredict = {}
-            for (i in features.features) {
-                featuredict[features.features[i].properties.oid]=features.features[i].properties
-            }
-            //$('#thumbnails').html(thumbnails)
-            //console.log(thumbnails)
+            // Fill the grid
+            var keys = Object.keys(thumbnails);
+            keys.sort();
 
-            keys=[]
-            for (k in thumbnails) {
-                keys.push(k);
+            var thumbnaildiv = [];
+            for(var i = 0; i < keys.length; i++) {
+                thumbnaildiv.push(thumbnails[keys[i]]);
             }
-            keys.sort()
-            thumbnaildiv=[]
-            for (i=0;i<keys.length;i++) {
-                k=keys[i]
-                thumbnaildiv.push(thumbnails[k])
-            }
+            $('#thumbnails').html(thumbnaildiv);
 
-            $('#thumbnails').html(thumbnaildiv)
-            map.addEventListener('dragend',function(){filter_points({'move':true})})
-            map.addEventListener('zoomend',function(){filter_points({'move':true})})
-            map.addEventListener('autopanstart',function(){filter_points({'move':true})})
-            $grid=$('.grid').masonry({
+            // Add event listeners to the map
+            function filterPointsMove() {
+                filter_points({move: true});
+            }
+            map.addEventListener('dragend', filterPointsMove);
+            map.addEventListener('zoomend', filterPointsMove);
+            map.addEventListener('autopanstart', filterPointsMove);
+
+            $grid = $('.grid').masonry({
                 columnWidth:'.grid-item',
                 itemSelector:'.grid-item',
                 gutter:10
+            });
 
-            })
             $grid.imagesLoaded(function(){$grid.masonry('layout')})
             eventlisteners()
 
@@ -455,4 +350,133 @@ window.onload = function() {
         filter_points({});
         map.removeLayer(wijk)
         map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
+}
+
+
+
+function CSVToArray( strData, strDelimiter ){
+    // Check to see if the delimiter is defined. If not,
+    // then default to comma.
+    strDelimiter = (strDelimiter || ",");
+
+    // Create a regular expression to parse the CSV values.
+    var objPattern = new RegExp(
+        (
+            // Delimiters.
+            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+            // Quoted fields.
+            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+            // Standard fields.
+            "([^\"\\" + strDelimiter + "\\r\\n]*))"
+        ),
+        "gi"
+        );
+
+
+    // Create an array to hold our data. Give the array
+    // a default empty first row.
+    var arrData = [[]];
+
+    // Create an array to hold our individual pattern
+    // matching groups.
+    var arrMatches = null;
+
+
+    // Keep looping over the regular expression matches
+    // until we can no longer find a match.
+    while (arrMatches = objPattern.exec( strData )){
+
+        // Get the delimiter that was found.
+        var strMatchedDelimiter = arrMatches[ 1 ];
+
+        // Check to see if the given delimiter has a length
+        // (is not the start of string) and if it matches
+        // field delimiter. If id does not, then we know
+        // that this delimiter is a row delimiter.
+        if (
+            strMatchedDelimiter.length &&
+            strMatchedDelimiter !== strDelimiter
+            ){
+
+            // Since we have reached a new row of data,
+            // add an empty row to our data array.
+            arrData.push( [] );
+
+        }
+
+        var strMatchedValue;
+
+        // Now that we have our delimiter out of the way,
+        // let's check to see which kind of value we
+        // captured (quoted or unquoted).
+        if (arrMatches[ 2 ]){
+
+            // We found a quoted value. When we capture
+            // this value, unescape any double quotes.
+            strMatchedValue = arrMatches[ 2 ].replace(
+                new RegExp( "\"\"", "g" ),
+                "\""
+                );
+
+        } else {
+
+            // We found a non-quoted value.
+            strMatchedValue = arrMatches[ 3 ];
+
+        }
+
+
+        // Now that we have our value string, let's add
+        // it to the data array.
+        arrData[ arrData.length - 1 ].push( strMatchedValue );
+    }
+
+    // Return the parsed data.
+    return( arrData );
+}
+
+function addrow(element, index, points, thumbnails) {
+    var naam = element.naam;
+    var website = element.website;
+    var categorie = element.categorie;
+    var categorie2 = element.categorie2;
+    var foto = element.foto.split('.')[0].concat('.jpg');
+    var tekstje = element.tekstje;
+
+    var adres = element.adres
+    if(element.adresextra) {
+        adres += ' (' + element.adresextra + ')';
+    }
+
+    var latitude = parseFloat(element.latitude);
+    var longitude = parseFloat(element.longitude);
+
+    if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
+        latitude = 0;
+        longitude = 0;
+    }
+
+    var thumbnail = compileTemplate.thumbnail({
+        categorie: categorie,
+        id: index,
+        foto: foto,
+        naam: naam,
+    });
+    thumbnails[index] = thumbnail;
+
+    var point = turf.point([longitude, latitude], {
+        naam: naam,
+        website: website,
+        categorie: categorie,
+        foto: foto,
+        tekstje: tekstje,
+        oid: index,
+        latitude: latitude,
+        longitude: longitude,
+        adres: adres,
+    });
+
+    points.addData(point)
 }
