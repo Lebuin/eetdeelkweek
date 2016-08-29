@@ -17,6 +17,8 @@ for(var key in templates) {
 
 
 window.onload = function() {
+
+    // map initialisation
     var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
     var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -38,6 +40,7 @@ window.onload = function() {
                             $('#wijkenMenu').append('<li><a href="#" onclick="fitbounds('+a+');"\
                             \
                             >'+c.properties.naam+'</a></li>')})
+
     fitbounds=function(num){
         b=turf.extent(wijken.features[num])
         map.fitBounds([[b[1],b[0]],[b[3],b[2]]])
@@ -47,6 +50,7 @@ window.onload = function() {
         wijk=L.geoJson(wijken.features[num],{color:'green','weight':2,dashArray:'10 10'}).addTo(map)
         filter_points({'wijk':wijken.features[num]})
     }
+
     // define marker layer
     var geojsonMarkerOptions = function(feature){
         var style= {radius: 7,
@@ -70,7 +74,6 @@ window.onload = function() {
         var within=turf.within(features,turf.featurecollection([polygon]))
         //console.log(within)
     }
-
 
     var features=[];
     var points = L.geoJson(features,{
@@ -123,10 +126,9 @@ window.onload = function() {
                         return false;
                         });
                 }
-
-
             });
         }
+
         $grid.on("mouseover",'.grid-item',function(){
 
             that=featuredict[this.id]
@@ -229,27 +231,23 @@ window.onload = function() {
             new_oids.push(selection.features[item].properties.oid)
         }
 
-        removed_ids=[]
-        added_ids=[]
-        for (i in selection.features){
-            if ($.inArray(selection.features[i].properties.oid,old_oids)==-1) {
-                added_ids.push(selection.features[i].properties.oid)
-            }
-        }
-        for (i in old_selection.features){
-            if ($.inArray(old_selection.features[i].properties.oid,new_oids)==-1) {
-                removed_ids.push(old_selection.features[i].properties.oid)
-            }
-        }
 
-        for (i in removed_ids) {
-            var $item=$('#'+removed_ids[i])
-            $grid.masonry("remove",$item).masonry("layout")
+        for (i in selection.features){
+            var properties = selection.features[i].properties;
+
+            if($.inArray(properties.oid, old_oids)==-1) {
+                $('#thumbnails').append(properties.thumbnail);
+                $item = $('#' + properties.oid);
+                $grid.prepend($item).masonry("prepended", $item);
+            }
         }
-        for (i in added_ids) {
-            $('#thumbnails').append(thumbnails[added_ids[i]])
-            $item=$('#'+added_ids[i])
-            $grid.prepend($item).masonry("prepended",$item)
+        for (i in old_selection.features) {
+            var properties = old_selection.features[i].properties
+
+            if($.inArray(properties.oid, new_oids)==-1) {
+                var $item = $('#' + properties.oid);
+                $grid.masonry("remove", $item).masonry("layout")
+            }
         }
 
         //for (i in added_keys.names){
@@ -281,11 +279,98 @@ window.onload = function() {
     }
 
 
+    function CSVToArray( strData, strDelimiter ){
+            // Check to see if the delimiter is defined. If not,
+            // then default to comma.
+            strDelimiter = (strDelimiter || ",");
+
+            // Create a regular expression to parse the CSV values.
+            var objPattern = new RegExp(
+                (
+                    // Delimiters.
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                    // Quoted fields.
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                    // Standard fields.
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                ),
+                "gi"
+                );
+
+
+            // Create an array to hold our data. Give the array
+            // a default empty first row.
+            var arrData = [[]];
+
+            // Create an array to hold our individual pattern
+            // matching groups.
+            var arrMatches = null;
+
+
+            // Keep looping over the regular expression matches
+            // until we can no longer find a match.
+            while (arrMatches = objPattern.exec( strData )){
+
+                // Get the delimiter that was found.
+                var strMatchedDelimiter = arrMatches[ 1 ];
+
+                // Check to see if the given delimiter has a length
+                // (is not the start of string) and if it matches
+                // field delimiter. If id does not, then we know
+                // that this delimiter is a row delimiter.
+                if (
+                    strMatchedDelimiter.length &&
+                    strMatchedDelimiter !== strDelimiter
+                    ){
+
+                    // Since we have reached a new row of data,
+                    // add an empty row to our data array.
+                    arrData.push( [] );
+
+                }
+
+                var strMatchedValue;
+
+                // Now that we have our delimiter out of the way,
+                // let's check to see which kind of value we
+                // captured (quoted or unquoted).
+                if (arrMatches[ 2 ]){
+
+                    // We found a quoted value. When we capture
+                    // this value, unescape any double quotes.
+                    strMatchedValue = arrMatches[ 2 ].replace(
+                        new RegExp( "\"\"", "g" ),
+                        "\""
+                        );
+
+                } else {
+
+                    // We found a non-quoted value.
+                    strMatchedValue = arrMatches[ 3 ];
+
+                }
+
+
+                // Now that we have our value string, let's add
+                // it to the data array.
+                arrData[ arrData.length - 1 ].push( strMatchedValue );
+            }
+
+            // Return the parsed data.
+            return( arrData );
+        }
+
+
+    // fetch data
     $.ajax({
         type: "GET",
         url: "items.csv",
         success: function(response) {
-            var thumbnails = {};
+            thumbnails={};
+            thumbnails_noloc={};
+            let points_noloc = []
 
             var rows = CSVToArray(response);
             var header = rows[0];
@@ -299,41 +384,94 @@ window.onload = function() {
             }
 
 
-            var features = points.toGeoJSON();
+            function addrow(element, index, value) {
+                var naam = element.naam;
+                var website = element.website;
+                var categorie = element.categorie;
+                var categorie2 = element.categorie2;
+                var foto = element.foto.split('.')[0].concat('.jpg');
+                var tekstje = element.tekstje;
+                var latitude = parseFloat(element.latitude);
+                var longitude = parseFloat(element.longitude);
+
+                if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
+                    latitude = 0;
+                    longitude = 0;
+                }
+
+
+                $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
+
+                var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
+                                    <img class='img-responsive' style='margin:0' src='images/"+foto+"'>\
+                                    <div class='caption'>\
+                                        <h5 style='text-align:center'>"+naam
+                if (latitude == 0) {
+                    thumbnail += '&nbsp<span class="glyphicon glyphicon-globe"></span>'
+                }
+                thumbnail += '</h5></div></div>';
+
+
+                var point = turf.point([longitude, latitude], {
+                    "naam": naam,
+                    "website": website,
+                    "categorie": categorie,
+                    "foto": foto,
+                    "tekstje": tekstje,
+                    "oid": index,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "thumbnail": thumbnail,
+                });
+
+                points.addData(point);
+            }
+
+
+            features=points.toGeoJSON()
+            features_noloc = _.filter(points_noloc,'properties.oid')
+
             featuredict = {};
-            for(i in features.features) {
-                var key = features.features[i].properties.oid;
-                var value = features.features[i].properties;
-                featuredict[key] = value;
-            }
+            thumbnaildiv = [];
+            _.forEach(features.features, value=>{
+                featuredict[value.properties.oid] = value.properties;
+                thumbnaildiv.push(value.properties.thumbnail);
+            });
 
+            featuredict_noloc = {};
+            thumbnaildiv_noloc = [];
+            _.forEach(features_noloc,value=>{
+                featuredict_noloc[value.properties.oid] = value.properties
+                thumbnaildiv_noloc.push(value.properties.thumbnail);
+            })
 
-            // Fill the grid
-            var keys = Object.keys(thumbnails);
-            keys.sort();
+            //var keys = _.keys(thumbnails)
+            //keys.sort()
+            //thumbnaildiv=[]
+            //for (i=0;i<keys.length;i++) {
+            //    k=keys[i]
+            //    thumbnaildiv.push(thumbnails[k])
+            //}
 
-            var thumbnaildiv = [];
-            for(var i = 0; i < keys.length; i++) {
-                thumbnaildiv.push(thumbnails[keys[i]]);
-            }
-            $('#thumbnails').html(thumbnaildiv);
-
-            // Add event listeners to the map
-            function filterPointsMove() {
-                filter_points({move: true});
-            }
-            map.addEventListener('dragend', filterPointsMove);
-            map.addEventListener('zoomend', filterPointsMove);
-            map.addEventListener('autopanstart', filterPointsMove);
-
-            $grid = $('.grid').masonry({
+            $('#thumbnails').html(thumbnaildiv)
+            $('#thumbnails_noloc').html(thumbnaildiv_noloc)
+            map.addEventListener('dragend',function(){filter_points({'move':true})})
+            map.addEventListener('zoomend',function(){filter_points({'move':true})})
+            map.addEventListener('autopanstart',function(){filter_points({'move':true})})
+            $grid=$('.grid').masonry({
                 columnWidth:'.grid-item',
                 itemSelector:'.grid-item',
                 gutter:10
-            });
+            })
+            $grid2=$('.grid2').masonry({
+                columnWidth:'.grid-item',
+                itemSelector:'.grid-item',
+                gutter:10
+            })
 
-            $grid.imagesLoaded(function(){$grid.masonry('layout')});
-            eventlisteners();
+            $grid.imagesLoaded(function(){$grid.masonry('layout')})
+            $grid2.imagesLoaded(function(){$grid2.masonry('layout')})
+            eventlisteners()
 
         },
         error: function (response){
@@ -350,135 +488,4 @@ window.onload = function() {
         filter_points({});
         map.removeLayer(wijk)
         map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
-}
-
-
-
-
-
-function CSVToArray( strData, strDelimiter ){
-    // Check to see if the delimiter is defined. If not,
-    // then default to comma.
-    strDelimiter = (strDelimiter || ",");
-
-    // Create a regular expression to parse the CSV values.
-    var objPattern = new RegExp(
-        (
-            // Delimiters.
-            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-            // Quoted fields.
-            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-            // Standard fields.
-            "([^\"\\" + strDelimiter + "\\r\\n]*))"
-        ),
-        "gi"
-        );
-
-
-    // Create an array to hold our data. Give the array
-    // a default empty first row.
-    var arrData = [[]];
-
-    // Create an array to hold our individual pattern
-    // matching groups.
-    var arrMatches = null;
-
-
-    // Keep looping over the regular expression matches
-    // until we can no longer find a match.
-    while (arrMatches = objPattern.exec( strData )){
-
-        // Get the delimiter that was found.
-        var strMatchedDelimiter = arrMatches[ 1 ];
-
-        // Check to see if the given delimiter has a length
-        // (is not the start of string) and if it matches
-        // field delimiter. If id does not, then we know
-        // that this delimiter is a row delimiter.
-        if (
-            strMatchedDelimiter.length &&
-            strMatchedDelimiter !== strDelimiter
-            ){
-
-            // Since we have reached a new row of data,
-            // add an empty row to our data array.
-            arrData.push( [] );
-
-        }
-
-        var strMatchedValue;
-
-        // Now that we have our delimiter out of the way,
-        // let's check to see which kind of value we
-        // captured (quoted or unquoted).
-        if (arrMatches[ 2 ]){
-
-            // We found a quoted value. When we capture
-            // this value, unescape any double quotes.
-            strMatchedValue = arrMatches[ 2 ].replace(
-                new RegExp( "\"\"", "g" ),
-                "\""
-                );
-
-        } else {
-
-            // We found a non-quoted value.
-            strMatchedValue = arrMatches[ 3 ];
-
-        }
-
-
-        // Now that we have our value string, let's add
-        // it to the data array.
-        arrData[ arrData.length - 1 ].push( strMatchedValue );
-    }
-
-    // Return the parsed data.
-    return( arrData );
-}
-
-function addrow(element, index, points, thumbnails) {
-    var naam = element.naam;
-    var website = element.website;
-    var categorie = element.categorie;
-    var categorie2 = element.categorie2;
-    var foto = element.foto.split('.')[0].concat('.jpg');
-    var tekstje = element.tekstje;
-
-    var adres = element.adres
-    if(element.adresextra) {
-        adres += ' (' + element.adresextra + ')';
-    }
-
-    var latitude = parseFloat(element.latitude);
-    var longitude = parseFloat(element.longitude);
-
-    if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
-        latitude = 0;
-        longitude = 0;
-    }
-
-    var thumbnail = compileTemplate.thumbnail({
-        categorie: categorie,
-        id: index,
-        foto: foto,
-        naam: naam,
-    });
-    thumbnails[index] = thumbnail;
-
-    var point = turf.point([longitude, latitude], {
-        naam: naam,
-        website: website,
-        categorie: categorie,
-        foto: foto,
-        tekstje: tekstje,
-        oid: index,
-        latitude: latitude,
-        longitude: longitude,
-        adres: adres,
-    });
-
-    points.addData(point)
 }
