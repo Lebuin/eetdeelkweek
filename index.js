@@ -1,4 +1,6 @@
 window.onload = function() {
+
+    // map initialisation
     var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
     var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -20,6 +22,7 @@ window.onload = function() {
                             $('#wijkenMenu').append('<li><a href="#" onclick="fitbounds('+a+');"\
                             \
                             >'+c.properties.naam+'</a></li>')})
+    
     fitbounds=function(num){
         b=turf.extent(wijken.features[num])
         map.fitBounds([[b[1],b[0]],[b[3],b[2]]])
@@ -29,6 +32,7 @@ window.onload = function() {
         wijk=L.geoJson(wijken.features[num],{color:'green','weight':2,dashArray:'10 10'}).addTo(map)
         filter_points({'wijk':wijken.features[num]})
     }
+
     // define marker layer
     var geojsonMarkerOptions = function(feature){
         var style= {radius: 7,
@@ -52,7 +56,6 @@ window.onload = function() {
         var within=turf.within(features,turf.featurecollection([polygon]))
         //console.log(within)
     }
-
 
     var features=[];
     var points = L.geoJson(features,{
@@ -105,10 +108,9 @@ window.onload = function() {
                         return false;
                         });
                 }
-
-
             });
         }
+
         $grid.on("mouseover",'.grid-item',function(){
 
             that=featuredict[this.id]
@@ -347,12 +349,15 @@ window.onload = function() {
             return( arrData );
         }
 
+
+    // fetch data
     $.ajax({
         type: "GET",
         url: "items.csv",
         success: function(response) {
             thumbnails={};
-
+            thumbnails_noloc={};
+            let points_noloc = []
             var rows = CSVToArray(response);
             var header = rows[0];
             for(var i = 1; i < rows.length; i++) {
@@ -380,7 +385,7 @@ window.onload = function() {
                     longitude = 0;
                 }
 
-                console.log(element);
+            
                 $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
 
                 var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
@@ -391,7 +396,7 @@ window.onload = function() {
                     thumbnail += '&nbsp<span class="glyphicon glyphicon-globe"></span>'
                 }
                 thumbnail += '</h5></div></div>';
-                thumbnails[index] = thumbnail;
+
 
                 var point = turf.point([longitude, latitude], {
                     "naam": naam,
@@ -403,31 +408,44 @@ window.onload = function() {
                     "latitude": latitude,
                     "longitude": longitude,
                 });
-
-                points.addData(point)
-            }
+                if (point.properties.latitude != 0) {
+                    thumbnails[index] = thumbnail;
+                    points.addData(point)
+                } else {
+                    thumbnails_noloc[index]=thumbnail;
+                    points_noloc.push(point)
+                }
+            }   
 
 
             features=points.toGeoJSON()
+            features_noloc = _.filter(points_noloc,'properties.oid')
             featuredict = {}
-            for (i in features.features) {
-                featuredict[features.features[i].properties.oid]=features.features[i].properties
-            }
-            //$('#thumbnails').html(thumbnails)
-            //console.log(thumbnails)
-
-            keys=[]
-            for (k in thumbnails) {
-                keys.push(k);
-            }
-            keys.sort()
+            _.forEach(features.features, value=>{
+                featuredict[value.properties.oid] = value.properties
+            })
+            featuredict_noloc = {}
+            _.forEach(features_noloc,value=>{
+                featuredict_noloc[value.properties.oid] = value.properties
+            })
             thumbnaildiv=[]
-            for (i=0;i<keys.length;i++) {
-                k=keys[i]
-                thumbnaildiv.push(thumbnails[k])
-            }
+            _.forEach(thumbnails, (value,key)=>{
+                thumbnaildiv.push(value)
+            })
+            thumbnaildiv_noloc=[]
+            _.forEach(thumbnails_noloc, (value,key)=>{
+                thumbnaildiv_noloc.push(value)
+            })
+            //var keys = _.keys(thumbnails)
+            //keys.sort()
+            //thumbnaildiv=[]
+            //for (i=0;i<keys.length;i++) {
+            //    k=keys[i]
+            //    thumbnaildiv.push(thumbnails[k])
+            //}
 
             $('#thumbnails').html(thumbnaildiv)
+            $('#thumbnails_noloc').html(thumbnaildiv_noloc)
             map.addEventListener('dragend',function(){filter_points({'move':true})})
             map.addEventListener('zoomend',function(){filter_points({'move':true})})
             map.addEventListener('autopanstart',function(){filter_points({'move':true})})
@@ -435,9 +453,15 @@ window.onload = function() {
                 columnWidth:'.grid-item',
                 itemSelector:'.grid-item',
                 gutter:10
-
             })
+            $grid2=$('.grid2').masonry({
+                columnWidth:'.grid-item',
+                itemSelector:'.grid-item',
+                gutter:10
+            })
+            
             $grid.imagesLoaded(function(){$grid.masonry('layout')})
+            $grid2.imagesLoaded(function(){$grid2.masonry('layout')})
             eventlisteners()
 
         },
