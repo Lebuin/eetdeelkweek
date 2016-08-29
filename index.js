@@ -406,28 +406,24 @@ window.onload = function() {
                 }
 
 
-                $('#tabel').append("<tr><td><a href='"+website+"'>"+naam+"</a></td><td><a href='#' onClick='filter_points(\""+categorie+"\")'>"+categorie+"</a></td><td><button class='btn' onClick=\"delete_object('"+index+"')\">Delete in database</button></td></tr>")
-
-                var thumbnail = "<div class='"+categorie+" grid-item thumbnail' id='"+index+"' >\
-                                    <img class='img-responsive' style='margin:0' src='images/"+foto+"'>\
-                                    <div class='caption'>\
-                                        <h5 style='text-align:center'>"+naam
-                if (latitude == 0) {
-                    thumbnail += '&nbsp<span class="glyphicon glyphicon-globe"></span>'
-                }
-                thumbnail += '</h5></div></div>';
+                var thumbnail = compileTemplate.thumbnail({
+                    categorie: categorie,
+                    id: index,
+                    foto: foto,
+                    naam: naam,
+                });
 
 
                 return turf.point([longitude, latitude], {
-                    "naam": naam,
-                    "website": website,
-                    "categorie": categorie,
-                    "foto": foto,
-                    "tekstje": tekstje,
-                    "oid": index,
-                    "latitude": latitude,
-                    "longitude": longitude,
-                    "thumbnail": thumbnail,
+                    naam: naam,
+                    website: website,
+                    categorie: categorie,
+                    foto: foto,
+                    tekstje: tekstje,
+                    oid: index,
+                    latitude: latitude,
+                    longitude: longitude,
+                    thumbnail: thumbnail,
                 });
             }
 
