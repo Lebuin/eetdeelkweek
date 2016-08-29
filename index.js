@@ -302,7 +302,6 @@ window.onload = function() {
                 if(item.categorie || item.groep) {
                     var point = addrow(item, i, points, thumbnails);
 
-                    console.log(point.properties);
                     if(point.properties.groep) {
                         var groep = point.properties.groep;
 
@@ -339,7 +338,6 @@ window.onload = function() {
                     }
                 }
             }
-            console.log(groepen);
 
 
             features = points.toGeoJSON()
@@ -409,7 +407,7 @@ function addrow(element, index, value) {
     var categorie = element.categorie;
     var categorie2 = element.categorie2;
     var website = element.website;
-    var foto = element.foto.split('.')[0].concat('.jpg');
+    var foto = element.foto ? element.foto.split('.')[0].concat('.jpg') : '';
     var tekstje = element.tekstje;
 
 
