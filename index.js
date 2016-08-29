@@ -181,100 +181,95 @@ window.onload = function() {
         if (_.isEmpty(cat)){
             filters = {};
             selection = features;
-            selection_noloc = features_noloc;
         } else {
             _.forEach(cat, (value,key)=>{
                 filters[key]=value
             })
         }
 
-        if (!_.isEmpty(selection)) {
-            old_selection = selection;
-            old_selection_noloc = selection_noloc;
-        } else {
-            old_selection = features; 
-            old_selection_noloc = features_noloc;
-        }
-        selection=features;
-        selection_noloc=features_noloc;
+        if (!_.isEmpty(selection)) {old_selection = selection;selection=features} else {old_selection = features; selection=features}
 
         try {
-            map.removeEventListener('mouseover')
-            map.removeEventListener('click')
-            map.removeLayer(points)
-        } catch (e){}
+                map.removeEventListener('mouseover')
+                map.removeEventListener('click')
+                map.removeLayer(points)
+
+        } catch (e){
+
+        }
 
         if (_.has(filters, 'categorie')){
-            console.log(features)
-            selection = turf.featurecollection(_.filter(selection.features,x=>{return x.properties.categorie == filters["categorie"]}))
-            selection_noloc = _.filter(selection_noloc, x=>{return x.properties.categorie == filters["categorie"]})
+            console.log(filters.categorie)
+            selection = turf.filter(selection,'categorie',filters["categorie"])
         }
         if (_.has(filters,'wijk')){
             selection = turf.within(selection, turf.featurecollection([filters.wijk]))
         }
+        //s
+        //sif ("categorie" in filters && filters["categorie"]!='all') {
+        //s    selection = turf.filter(selection,'categorie',filters["categorie"])
+        //s} else if ("wijk" in filters) {
+        //s    console.log(filters.wijk)
+        //s    console.log(features)
+        //s    selection = turf.within(features, turf.featurecollection([filters.wijk]))
+        //s    console.log(selection)
+        //s    //selection = turf.within(features,)
+        //s} else {
+        //s    selection = features
+        //s}
+        nocoords=[]
+        for (i=0;i<selection.features.length;i++) {
+            if (parseFloat(selection.features[i].properties.latitude)==0) {
+                nocoords.push(selection.features[i])
+            }
+        }
 
         bounds=turf.bboxPolygon(map.getBounds().toBBoxString().split(",").map(parseFloat))
         selection=turf.within(selection,turf.featurecollection([bounds]))
+        //selection.features=selection.features.concat(nocoords)
 
         old_oids=[]
-        old_oids_noloc=[]
-        _.forEach(old_selection.features,feature=>{
-            old_oids.push(feature.properties.oid)
-        })
-        _.forEach(old_selection_noloc,feature=>{
-            old_oids_noloc.push(feature.properties.oid)
-        })
+        for (var item in old_selection.features){
+            old_oids.push(old_selection.features[item].properties.oid)
+        }
         new_oids=[]
-        new_oids_noloc=[]
-        _.forEach(selection.features,feature=>{
-            new_oids.push(feature.properties.oid)
-        })
-        _.forEach(selection_noloc, feature=>{
-            new_oids_noloc.push(feature.properties.oid)
-        })
+        for (var item in selection.features){
+            new_oids.push(selection.features[item].properties.oid)
+        }
 
 
-        // append new items to masonry
-        _.forEach(selection.features,feature=>{
-            let properties = feature.properties;
-            if (!_.includes(old_oids, properties.oid)){
-                $("#thumbnails").append(properties.thumbnail);
-                $item = $("#"+properties.oid);
-                $grid.prepend($item).masonry('prepended',$item)
+        for (i in selection.features){
+            var properties = selection.features[i].properties;
+
+            if($.inArray(properties.oid, old_oids)==-1) {
+                $('#thumbnails').append(properties.thumbnail);
+                $item = $('#' + properties.oid);
+                $grid.prepend($item).masonry("prepended", $item);
             }
-        })
-        _.forEach(selection_noloc, feature=>{
-            let properties = feature.properties;
-            if (!_.includes(old_oids_noloc, properties.oid)){
-                $("#thumbnails").append(properties.thumbnail);
-                $item = $("#"+properties.oid);
-                $grid2.prepend($item).masonry("prepended",$item)
+        }
+        for (i in old_selection.features) {
+            var properties = old_selection.features[i].properties
+
+            if($.inArray(properties.oid, new_oids)==-1) {
+                var $item = $('#' + properties.oid);
+                $grid.masonry("remove", $item).masonry("layout")
             }
-        })
-      
-        // delete old items from masonry
-        _.forEach(old_selection.features, feature=>{
-            let properties = feature.properties
-            if (!_.includes(new_oids, properties.oid)){
-                let $item = $("#"+properties.oid);
-                $grid.masonry("remove",$item).masonry("layout")
-            }
-        })
-        _.forEach(old_selection_noloc, feature=>{
-            let properties = feature.properties
-            if (!_.includes(new_oids_noloc, properties.oid)){
-                let $item = $("#"+properties.oid);
-                $grid2.masonry("remove",$item).masonry("layout")
-            }
-        })
-     
+        }
+
+        //for (i in added_keys.names){
+        //  $('#thumbnails').append(thumbnails[added_keys.names[i]])
+        //    $item=$('#'+added_keys.oids[i])
+        //  console.log("add:",added_keys.names[i])
+        //  $grid.prepend($item).masonry("prepended",$item)
+        //}
+
         points = L.geoJson(selection,{
         pointToLayer: function (feature, latlng) {
             return L.circleMarker(latlng, geojsonMarkerOptions(feature));
         }}).addTo(map);
 
         eventlisteners()
-        setTimeout(function(){$grid.masonry('layout');$grid2.masonry("layout")},500)
+        setTimeout(function(){$grid.masonry('layout')},500)
 
     }
 
@@ -307,6 +302,7 @@ window.onload = function() {
                 if(item.categorie || item.groep) {
                     var point = addrow(item, i, points, thumbnails);
 
+                    console.log(point.properties);
                     if(point.properties.groep) {
                         var groep = point.properties.groep;
 
