@@ -1,1 +1,3 @@
 *.~lock*
+*.sublime-project
+*.sublime-workspace
