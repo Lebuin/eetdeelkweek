@@ -16,6 +16,12 @@ for(var key in templates) {
 }
 
 
+var groepen = {};
+groepen.Voedselteams = [
+
+]
+
+
 window.onload = function() {
 
     // map initialisation
@@ -275,7 +281,7 @@ window.onload = function() {
             succes:function(response){
                 console.log(id + " deleted")
             }
-        })
+        });
     }
 
 
@@ -284,52 +290,73 @@ window.onload = function() {
         type: "GET",
         url: "items.csv",
         success: function(response) {
-            thumbnails={};
-            thumbnails_noloc={};
-            let points_noloc = []
+            var points_noloc = [];
 
             var rows = CSVToArray(response);
             var header = rows[0];
+
             for(var i = 1; i < rows.length; i++) {
                 var item = _.zipObject(header, rows[i]);
 
                 // Ignore items without categorie
-                if(item.categorie) {
+                if(item.categorie || item.groep) {
                     var point = addrow(item, i, points, thumbnails);
 
-                    if(point.properties.latitude) {
+                    if(point.properties.groep) {
+                        var groep = point.properties.groep;
+
+                        var groepPoint = null;
+                        for(var k = points_noloc.length - 1; k >= 0; k--) {
+                            if(points_noloc[k].properties.naam === point.properties.groep) {
+                                groepPoint = points_noloc[k];
+                                break;
+                            }
+                        }
+
+                        if(groepPoint) {
+                            for(var key in point.properties) {
+                                if(!point.properties[key]) {
+                                    point.properties[key] = groepPoint.properties[key];
+                                }
+                            }
+
+                            if(!groepen.hasOwnProperty(groep)) {
+                                groepen[groep] = [];
+                            }
+                            groepen[groep].push(point);
+
+                        } else {
+                            console.error('Groep niet gevonden:', groep);
+                        }
+
+
+                    } else if(point.properties.latitude) {
                         points.addData(point);
+
                     } else {
                         points_noloc.push(point);
                     }
                 }
             }
+            console.log(groepen);
 
 
-            features=points.toGeoJSON()
+            features = points.toGeoJSON()
             features_noloc = _.filter(points_noloc,'properties.oid')
 
             featuredict = {};
-            thumbnaildiv = [];
-            _.forEach(features.features, value=>{
+            var thumbnaildiv = [];
+            _.forEach(features.features, value => {
                 featuredict[value.properties.oid] = value.properties;
                 thumbnaildiv.push(value.properties.thumbnail);
             });
 
             featuredict_noloc = {};
-            thumbnaildiv_noloc = [];
-            _.forEach(features_noloc,value=>{
+            var thumbnaildiv_noloc = [];
+            _.forEach(features_noloc, value => {
                 featuredict_noloc[value.properties.oid] = value.properties
                 thumbnaildiv_noloc.push(value.properties.thumbnail);
-            })
-
-            //var keys = _.keys(thumbnails)
-            //keys.sort()
-            //thumbnaildiv=[]
-            //for (i=0;i<keys.length;i++) {
-            //    k=keys[i]
-            //    thumbnaildiv.push(thumbnails[k])
-            //}
+            });
 
             $('#thumbnails').html(thumbnaildiv)
             $('#thumbnails_noloc').html(thumbnaildiv_noloc)
@@ -377,11 +404,21 @@ window.onload = function() {
 
 function addrow(element, index, value) {
     var naam = element.naam;
-    var website = element.website;
+    var groep = element.groep;
     var categorie = element.categorie;
     var categorie2 = element.categorie2;
+    var website = element.website;
     var foto = element.foto.split('.')[0].concat('.jpg');
     var tekstje = element.tekstje;
+
+
+    // Adres
+    var adres = element.adres;
+    if(element.adresextra) {
+        adres += ' (' + element.adresextra + ')';
+    }
+
+    // Latlon
     var latitude = parseFloat(element.latitude);
     var longitude = parseFloat(element.longitude);
 
@@ -401,6 +438,7 @@ function addrow(element, index, value) {
 
     return turf.point([longitude, latitude], {
         naam: naam,
+        groep: groep,
         website: website,
         categorie: categorie,
         foto: foto,
@@ -408,6 +446,7 @@ function addrow(element, index, value) {
         oid: index,
         latitude: latitude,
         longitude: longitude,
+        adres: adres,
         thumbnail: thumbnail,
     });
 }
