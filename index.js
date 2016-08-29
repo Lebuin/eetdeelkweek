@@ -379,7 +379,13 @@ window.onload = function() {
 
                 // Ignore items without categorie
                 if(item.categorie) {
-                    addrow(item, i, points, thumbnails);
+                    var point = addrow(item, i, points, thumbnails);
+
+                    if(point.properties.latitude) {
+                        points.addData(point);
+                    } else {
+                        points_noloc.push(point);
+                    }
                 }
             }
 
@@ -412,7 +418,7 @@ window.onload = function() {
                 thumbnail += '</h5></div></div>';
 
 
-                var point = turf.point([longitude, latitude], {
+                return turf.point([longitude, latitude], {
                     "naam": naam,
                     "website": website,
                     "categorie": categorie,
@@ -423,8 +429,6 @@ window.onload = function() {
                     "longitude": longitude,
                     "thumbnail": thumbnail,
                 });
-
-                points.addData(point);
             }
 
 
@@ -455,6 +459,7 @@ window.onload = function() {
 
             $('#thumbnails').html(thumbnaildiv)
             $('#thumbnails_noloc').html(thumbnaildiv_noloc)
+
             map.addEventListener('dragend',function(){filter_points({'move':true})})
             map.addEventListener('zoomend',function(){filter_points({'move':true})})
             map.addEventListener('autopanstart',function(){filter_points({'move':true})})
