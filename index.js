@@ -279,90 +279,6 @@ window.onload = function() {
     }
 
 
-    function CSVToArray( strData, strDelimiter ){
-            // Check to see if the delimiter is defined. If not,
-            // then default to comma.
-            strDelimiter = (strDelimiter || ",");
-
-            // Create a regular expression to parse the CSV values.
-            var objPattern = new RegExp(
-                (
-                    // Delimiters.
-                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-                    // Quoted fields.
-                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-                    // Standard fields.
-                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                ),
-                "gi"
-                );
-
-
-            // Create an array to hold our data. Give the array
-            // a default empty first row.
-            var arrData = [[]];
-
-            // Create an array to hold our individual pattern
-            // matching groups.
-            var arrMatches = null;
-
-
-            // Keep looping over the regular expression matches
-            // until we can no longer find a match.
-            while (arrMatches = objPattern.exec( strData )){
-
-                // Get the delimiter that was found.
-                var strMatchedDelimiter = arrMatches[ 1 ];
-
-                // Check to see if the given delimiter has a length
-                // (is not the start of string) and if it matches
-                // field delimiter. If id does not, then we know
-                // that this delimiter is a row delimiter.
-                if (
-                    strMatchedDelimiter.length &&
-                    strMatchedDelimiter !== strDelimiter
-                    ){
-
-                    // Since we have reached a new row of data,
-                    // add an empty row to our data array.
-                    arrData.push( [] );
-
-                }
-
-                var strMatchedValue;
-
-                // Now that we have our delimiter out of the way,
-                // let's check to see which kind of value we
-                // captured (quoted or unquoted).
-                if (arrMatches[ 2 ]){
-
-                    // We found a quoted value. When we capture
-                    // this value, unescape any double quotes.
-                    strMatchedValue = arrMatches[ 2 ].replace(
-                        new RegExp( "\"\"", "g" ),
-                        "\""
-                        );
-
-                } else {
-
-                    // We found a non-quoted value.
-                    strMatchedValue = arrMatches[ 3 ];
-
-                }
-
-
-                // Now that we have our value string, let's add
-                // it to the data array.
-                arrData[ arrData.length - 1 ].push( strMatchedValue );
-            }
-
-            // Return the parsed data.
-            return( arrData );
-        }
-
-
     // fetch data
     $.ajax({
         type: "GET",
@@ -387,44 +303,6 @@ window.onload = function() {
                         points_noloc.push(point);
                     }
                 }
-            }
-
-
-            function addrow(element, index, value) {
-                var naam = element.naam;
-                var website = element.website;
-                var categorie = element.categorie;
-                var categorie2 = element.categorie2;
-                var foto = element.foto.split('.')[0].concat('.jpg');
-                var tekstje = element.tekstje;
-                var latitude = parseFloat(element.latitude);
-                var longitude = parseFloat(element.longitude);
-
-                if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
-                    latitude = 0;
-                    longitude = 0;
-                }
-
-
-                var thumbnail = compileTemplate.thumbnail({
-                    categorie: categorie,
-                    id: index,
-                    foto: foto,
-                    naam: naam,
-                });
-
-
-                return turf.point([longitude, latitude], {
-                    naam: naam,
-                    website: website,
-                    categorie: categorie,
-                    foto: foto,
-                    tekstje: tekstje,
-                    oid: index,
-                    latitude: latitude,
-                    longitude: longitude,
-                    thumbnail: thumbnail,
-                });
             }
 
 
@@ -456,9 +334,12 @@ window.onload = function() {
             $('#thumbnails').html(thumbnaildiv)
             $('#thumbnails_noloc').html(thumbnaildiv_noloc)
 
-            map.addEventListener('dragend',function(){filter_points({'move':true})})
-            map.addEventListener('zoomend',function(){filter_points({'move':true})})
-            map.addEventListener('autopanstart',function(){filter_points({'move':true})})
+            function filterPointsMove() {
+                filter_points({move: true});
+            }
+            map.addEventListener('dragend', filterPointsMove);
+            map.addEventListener('zoomend', filterPointsMove);
+            map.addEventListener('autopanstart', filterPointsMove);
             $grid=$('.grid').masonry({
                 columnWidth:'.grid-item',
                 itemSelector:'.grid-item',
@@ -489,4 +370,128 @@ window.onload = function() {
         filter_points({});
         map.removeLayer(wijk)
         map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
+}
+
+
+
+
+function addrow(element, index, value) {
+    var naam = element.naam;
+    var website = element.website;
+    var categorie = element.categorie;
+    var categorie2 = element.categorie2;
+    var foto = element.foto.split('.')[0].concat('.jpg');
+    var tekstje = element.tekstje;
+    var latitude = parseFloat(element.latitude);
+    var longitude = parseFloat(element.longitude);
+
+    if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
+        latitude = 0;
+        longitude = 0;
+    }
+
+
+    var thumbnail = compileTemplate.thumbnail({
+        categorie: categorie,
+        id: index,
+        foto: foto,
+        naam: naam,
+    });
+
+
+    return turf.point([longitude, latitude], {
+        naam: naam,
+        website: website,
+        categorie: categorie,
+        foto: foto,
+        tekstje: tekstje,
+        oid: index,
+        latitude: latitude,
+        longitude: longitude,
+        thumbnail: thumbnail,
+    });
+}
+
+
+function CSVToArray( strData, strDelimiter ){
+    // Check to see if the delimiter is defined. If not,
+    // then default to comma.
+    strDelimiter = (strDelimiter || ",");
+
+    // Create a regular expression to parse the CSV values.
+    var objPattern = new RegExp(
+        (
+            // Delimiters.
+            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+            // Quoted fields.
+            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+            // Standard fields.
+            "([^\"\\" + strDelimiter + "\\r\\n]*))"
+        ),
+        "gi"
+        );
+
+
+    // Create an array to hold our data. Give the array
+    // a default empty first row.
+    var arrData = [[]];
+
+    // Create an array to hold our individual pattern
+    // matching groups.
+    var arrMatches = null;
+
+
+    // Keep looping over the regular expression matches
+    // until we can no longer find a match.
+    while (arrMatches = objPattern.exec( strData )){
+
+        // Get the delimiter that was found.
+        var strMatchedDelimiter = arrMatches[ 1 ];
+
+        // Check to see if the given delimiter has a length
+        // (is not the start of string) and if it matches
+        // field delimiter. If id does not, then we know
+        // that this delimiter is a row delimiter.
+        if (
+            strMatchedDelimiter.length &&
+            strMatchedDelimiter !== strDelimiter
+            ){
+
+            // Since we have reached a new row of data,
+            // add an empty row to our data array.
+            arrData.push( [] );
+
+        }
+
+        var strMatchedValue;
+
+        // Now that we have our delimiter out of the way,
+        // let's check to see which kind of value we
+        // captured (quoted or unquoted).
+        if (arrMatches[ 2 ]){
+
+            // We found a quoted value. When we capture
+            // this value, unescape any double quotes.
+            strMatchedValue = arrMatches[ 2 ].replace(
+                new RegExp( "\"\"", "g" ),
+                "\""
+                );
+
+        } else {
+
+            // We found a non-quoted value.
+            strMatchedValue = arrMatches[ 3 ];
+
+        }
+
+
+        // Now that we have our value string, let's add
+        // it to the data array.
+        arrData[ arrData.length - 1 ].push( strMatchedValue );
+    }
+
+    // Return the parsed data.
+    return( arrData );
 }
