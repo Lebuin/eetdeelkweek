@@ -16,15 +16,36 @@ for(var key in templates) {
 }
 
 
-var groepen = {};
-groepen.Voedselteams = [
 
-]
+var categories = {
+    voeding: {
+        name: 'Voeding',
+        color: '#F44336',
+    },
+
+    wonen: {
+        name: 'Wonen',
+        color: '#FF9800',
+    },
+
+    mobiliteit: {
+        name: 'Mobiliteit',
+        color: '#FFEB3B',
+    },
+
+    consuminderen: {
+        name: 'Consuminderen',
+        color: '#03A9F4'
+    },
+};
+
+var selectedCategories = {};
+
+var groups = {};
 
 
-window.onload = function() {
 
-    // map initialisation
+function createMap() {
     var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
     var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -42,46 +63,37 @@ window.onload = function() {
         opacity:0.7,
     }).addTo(map);
 
-    wijken.features.forEach(function(c,a){
-                            $('#wijkenMenu').append('<li><a href="#" onclick="fitbounds('+a+');"\
-                            \
-                            >'+c.properties.naam+'</a></li>')})
+    return map;
+}
 
-    fitbounds=function(num){
-        b=turf.extent(wijken.features[num])
-        map.fitBounds([[b[1],b[0]],[b[3],b[2]]])
-        try{
-            map.removeLayer(wijk)
-            }catch(err){}
-        wijk=L.geoJson(wijken.features[num],{color:'green','weight':2,dashArray:'10 10'}).addTo(map)
-        filter_points({'wijk':wijken.features[num]})
-    }
 
-    // define marker layer
-    var geojsonMarkerOptions = function(feature){
-        var style= {radius: 7,
-                weight: 1,
-                opacity:0.3,
-                fillOpacity: 1}
-
-        switch (feature.properties.categorie) {
-            case "voeding": style.fillColor='orange';return style;
-            case "woon": style.fillColor='#58fa3c';return style;
-            case "mobiliteit": style.fillColor='yellow';return style;
-            case "consuminderen": style.fillColor='blue'; return style;
-            case "":style.fillColor='purple';return style;
-        };
-
+// define marker layer
+function geojsonMarkerOptions(feature) {
+    return {
+        radius: 7,
+        weight: 1,
+        opacity:0.3,
+        fillOpacity: 1,
+        fillColor: categories[feature.properties.categorie].color,
     };
+};
 
-    function plotbounds() {
-        var bounds=map.getBounds()
-        polygon = turf.bboxPolygon(bounds.toBBoxString().split(",").map(parseFloat))
-        var within=turf.within(features,turf.featurecollection([polygon]))
-        //console.log(within)
+
+function toggleCategory(category) {
+    if(selectedCategories.hasOwnProperty(category)) {
+        delete selectedCategories[category];
+    } else {
+        selectedCategories[category] = true;
     }
 
-    var features=[];
+    filterPoints();
+}
+
+
+window.onload = function() {
+    var map = createMap();
+
+    var features = [];
     var points = L.geoJson(features,{
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, geojsonMarkerOptions(feature));
@@ -270,18 +282,6 @@ window.onload = function() {
 
         eventlisteners()
         setTimeout(function(){$grid.masonry('layout')},500)
-
-    }
-
-    function delete_object(id) {
-        console.log(id)
-        $.ajax({
-            type:"DELETE",
-            url:"https://api.mlab.com/api/1/databases/eetdeelkweek/collections/organisaties/"+id+"?apiKey=zZCeZ97nlxBLNXmmmUHNj_VbBM3K9Ady",
-            succes:function(response){
-                console.log(id + " deleted")
-            }
-        });
     }
 
 
@@ -320,10 +320,10 @@ window.onload = function() {
                                 }
                             }
 
-                            if(!groepen.hasOwnProperty(groep)) {
-                                groepen[groep] = [];
+                            if(!groups.hasOwnProperty(groep)) {
+                                groups[groep] = [];
                             }
-                            groepen[groep].push(point);
+                            groups[groep].push(point);
 
                         } else {
                             console.error('Groep niet gevonden:', groep);
