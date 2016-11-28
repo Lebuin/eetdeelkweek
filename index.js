@@ -1,3 +1,10 @@
+/*************
+ * Templates *
+ *************/
+
+// Use like this:
+// var html = compileTemplate[key](context)
+
 templates = {};
 templates.thumbnail = '\
 <div class="<%= categorie %> grid-item thumbnail" id="<%= id %>">\
@@ -16,6 +23,10 @@ for(var key in templates) {
 }
 
 
+
+/********************
+ * Global variables *
+ ********************/
 
 var categories = {
     voeding: {
@@ -44,6 +55,9 @@ var selectedCategories = {};
 var groups = {};
 
 
+/***********
+ * Methods *
+ ***********/
 
 function createMap() {
     var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
@@ -68,7 +82,7 @@ function createMap() {
 
 
 // define marker layer
-function geojsonMarkerOptions(feature) {
+function geoJsonMarkerOptions(feature) {
     return {
         radius: 7,
         weight: 1,
@@ -96,7 +110,7 @@ window.onload = function() {
     var features = [];
     var points = L.geoJson(features,{
             pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, geojsonMarkerOptions(feature));
+                return L.circleMarker(latlng, geoJsonMarkerOptions(feature));
             }
         }).addTo(map);
 
@@ -150,11 +164,6 @@ window.onload = function() {
         $grid.on("mouseover",'.grid-item',function(){
             console.log(this)
             that=featuredict[this.id]
-            //console.log(that.latitude)
-            //if (that.latitude!="0") {
-            //  map.setView([that.latitude,that.longitude,],16)
-            //}
-            //console.log(turf.point([that.longitude,that.latitude]))
             try{map.removeLayer(found)}catch(e){}
 
             found=L.geoJson(turf.point([that.longitude,that.latitude]),{
@@ -217,18 +226,7 @@ window.onload = function() {
         if (_.has(filters,'wijk')){
             selection = turf.within(selection, turf.featurecollection([filters.wijk]))
         }
-        //s
-        //sif ("categorie" in filters && filters["categorie"]!='all') {
-        //s    selection = turf.filter(selection,'categorie',filters["categorie"])
-        //s} else if ("wijk" in filters) {
-        //s    console.log(filters.wijk)
-        //s    console.log(features)
-        //s    selection = turf.within(features, turf.featurecollection([filters.wijk]))
-        //s    console.log(selection)
-        //s    //selection = turf.within(features,)
-        //s} else {
-        //s    selection = features
-        //s}
+
         nocoords=[]
         for (i=0;i<selection.features.length;i++) {
             if (parseFloat(selection.features[i].properties.latitude)==0) {
@@ -268,16 +266,9 @@ window.onload = function() {
             }
         }
 
-        //for (i in added_keys.names){
-        //  $('#thumbnails').append(thumbnails[added_keys.names[i]])
-        //    $item=$('#'+added_keys.oids[i])
-        //  console.log("add:",added_keys.names[i])
-        //  $grid.prepend($item).masonry("prepended",$item)
-        //}
-
         points = L.geoJson(selection,{
         pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, geojsonMarkerOptions(feature));
+            return L.circleMarker(latlng, geoJsonMarkerOptions(feature));
         }}).addTo(map);
 
         eventlisteners()
