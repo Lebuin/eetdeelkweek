@@ -16,6 +16,22 @@ templates.thumbnail = '\
     </div>\
 </div>';
 
+templates.info = '\
+<h5><%= naam %></h5>\
+<i><%= categorie %></i>\
+\
+<% if(latitude) { %>\
+    <a href="#" onclick="focusItem(id)"><span class="glyphicon glyphicon-map-marker"></span></a>\
+<% } %>\
+\
+<p><%= tekstje %></p>\
+\
+<% if(foto) { %>\
+    <p><img src="images/<%= foto %>" /></p>\
+<% } %>\
+\
+<p><a href="<%= website %>">Website</a></p>';
+
 
 var compileTemplate = {};
 for(var key in templates) {
@@ -50,8 +66,12 @@ var categories = {
     },
 };
 
-var selectedCategories = {};
+var selected = {
+    categories: {},
+    location: true,
+}
 
+var items = {};
 var groups = {};
 
 
@@ -93,14 +113,27 @@ function geoJsonMarkerOptions(feature) {
 };
 
 
+function setLocationSelected(value) {
+    selected.location = value;
+
+    filterItems();
+}
+
+
 function toggleCategory(category) {
-    if(selectedCategories.hasOwnProperty(category)) {
-        delete selectedCategories[category];
+    if(selected.categories.hasOwnProperty(category)) {
+        delete selected.categories[category];
     } else {
-        selectedCategories[category] = true;
+        selected.categories[category] = true;
     }
 
-    filterPoints();
+    filterItems();
+}
+
+function filterItems() {
+    //TODO: update the masonry list based on the selected categories,
+    //whether to show points with/without location and the map position
+
 }
 
 
@@ -117,20 +150,9 @@ window.onload = function() {
     // define eventlisteners for marker layer
     function eventlisteners() {
         function panelfill(properties) {
-            //console.log(e.layer.feature.properties)
-            var div = '<h5>'+properties.naam+'</h5>\
-                            <i>'+properties.categorie+'</i>'
-            if (parseFloat(properties.latitude)!=0){
-                div=div+'&nbsp<a href="#"><span class="glyphicon glyphicon-map-marker"></span></a>'}
-            div=div+'\
-                <p style="text-align:justify;word-wrap:break-word">\
-                            '+properties.tekstje.replace('\\r\\n','</p>')+'</p>'
-            if (properties.foto!= "") {
-                div = div+'<p><img class="img-responsive" style="border-radius:5px;" src="images/'+properties.foto+'" alt=""></img></p>'
-            }
-            div=div+'<p style="word-wrap:break-word"><a href="'+properties.website+'">'+properties.website+'</a></p>'
+            var html = compileTemplate.info(properties);
 
-            $('#panel').html(div)
+            $('#panel').html(html)
             $('#panel img').on('mouseover',function(){
                 try {
                     map.removeLayer(found)
