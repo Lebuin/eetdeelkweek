@@ -17,17 +17,17 @@ templates.thumbnail = '\
 </div>';
 
 templates.info = '\
-<h5><%= naam %></h5>\
-<i><%= categorie %></i>\
+<h5><%= name %></h5>\
+<i><%= _.join(categories, ", ") %></i>\
 \
-<% if(latitude) { %>\
+<% if(hasCoordinate) { %>\
     <a href="#" onclick="focusItem(id)"><span class="glyphicon glyphicon-map-marker"></span></a>\
 <% } %>\
 \
-<p><%= tekstje %></p>\
+<p><%= description %></p>\
 \
-<% if(foto) { %>\
-    <p><img src="images/<%= foto %>" /></p>\
+<% if(image) { %>\
+    <p><img src="images/<%= image %>" /></p>\
 <% } %>\
 \
 <p><a href="<%= website %>">Website</a></p>';
@@ -64,15 +64,21 @@ let categories = {
         name: 'Consuminderen',
         color: '#03A9F4'
     },
+
+    ontmoeten: {
+        name: 'Ontmoeten',
+        color: 'blue',
+    },
 };
 
 let selected = {
     categories: {},
-    location: true,
+    hasCoordinate: true,
 };
 
-let items = {};
+let items = {}, filteredItems = {};
 
+let $grid, map, pointsLayer;
 
 
 
@@ -81,7 +87,11 @@ let items = {};
  ******************/
 
 window.onload = function() {
-    var map = createMap();
+    $grid = createMasonry();
+
+    map = createMap();
+
+    registerEventListeners();
 
     getItems(function(localItems) {
         items = localItems;
@@ -95,10 +105,36 @@ window.onload = function() {
  * Methods *
  ***********/
 
-function createMap() {
-    var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16});
+function registerEventListeners() {
+    //TODO: listen on masonry list item hover, map point hover, button clicks,...
+}
 
-    var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
+
+function createMasonry() {
+    let $grid = $('.grid');
+
+    $grid.imagesLoaded().progress(function() {
+        $grid.masonry('layout');
+    });
+
+    $grid.masonry({
+        columnWidth:'.grid-item',
+        itemSelector:'.grid-item',
+        gutter:10
+    });
+
+    return $grid;
+}
+
+
+function createMap() {
+    var map = L.map('map', {
+        center: [51.055, 3.73],
+        zoom:12,
+        maxZoom:16,
+    });
+
+    L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: 'abcd',
         minZoom: 1,
@@ -106,7 +142,7 @@ function createMap() {
         ext: 'png'
     }).addTo(map);
 
-    var Stamen_TonerLabels = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.{ext}', {
+    L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: 'abcd',
         minZoom: 0,
@@ -131,14 +167,14 @@ function geoJsonMarkerOptions(feature) {
 }
 
 
-function setLocationSelected(value) {
-    selected.location = value;
+function setHasCoordinateFilter(value) {
+    selected.hasCoordinate = value;
 
     filterItems();
 }
 
 
-function toggleCategory(category) {
+function toggleCategoryFilter(category) {
     if(selected.categories.hasOwnProperty(category)) {
         delete selected.categories[category];
     } else {
@@ -150,9 +186,70 @@ function toggleCategory(category) {
 
 
 function filterItems() {
-    //TODO: update the masonry list based on the selected categories,
-    //whether to show points with/without location and the map position
+    let oldFilteredItems = filteredItems;
+    filteredItems = _.pickBy(items, filterItem);
 
+    let removeItems = _.omitBy(oldFilteredItems, filteredItems.hasOwnProperty);
+    let addItems = _.omitBy(filteredItems, oldFilteredItems.hasOwnProperty);
+
+    // Remove all old elements
+    _.forEach(removeItems, function(item) {
+        let $element = item.$thumbnailElement;
+        item.$thumbnailElement = null;
+
+        $element.remove();
+        $grid.masonry('remove', $element).masonry('layout');
+    });
+
+    // Add all new elements
+    _.forEach(addItems, function(item) {
+        let $element = $(item.html.thumbnail).prependTo($grid);
+        item.$thumbnailElement = $element;
+        $grid.masonry('prepended', $element).masonry('layout');
+    });
+
+    $grid.masonry('layout');
+}
+
+
+function filterItem(item) {
+    // Items with a group should not be shown
+    if(item.group) {
+        return false;
+    }
+
+    // Check if items should have a coordinate
+    if(item.hasCoordinate !== selected.hasCoordinate) {
+        return false;
+    }
+
+    // Check if the item is shown on the map
+    let bounds = map.getBounds();
+    if(item.hasCoordinate && (
+            item.latitude  < bounds._southWest.lat ||
+            item.latitude  > bounds._northEast.lat ||
+            item.longitude < bounds._southWest.lng ||
+            item.longitude > bounds._northEast.lng)) {
+        return false;
+    }
+
+    // Check if the item has a correct category
+    if(_.keys(selected.categories).length === 0) {
+        return true;
+    }
+
+    for(let i = 0; i < item.categories; i++) {
+        if(_.has(selected.categories, item.categories[i])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+function buildMasonry(items) {
+    // Remove unwanted items
 }
 
 
@@ -262,10 +359,6 @@ function getItem(id, header, row) {
     let image = element.foto ? element.foto.split('.')[0].concat('.jpg') : '';
 
 
-    // Geographic point used for filtering
-    let point = hasCoordinate ? turf.point([longitude, latitude]) : null;
-
-
     // Make final object
     let item = {
         id: id,
@@ -284,7 +377,8 @@ function getItem(id, header, row) {
         latitude: latitude,
         longitude: longitude,
 
-        point: point,
+        html: {},
+        $thumbnailElement: null,
     };
 
     return item;
@@ -330,8 +424,20 @@ function getItemHtml(item) {
         categories: item.categories,
     });
 
+    let info = compileTemplate.info({
+        id: item.id,
+        name: item.name,
+        website: item.website,
+        description: item.description,
+
+        image: item.image,
+        categories: item.categories,
+        hasCoordinate: item.hasCoordinate
+    });
+
     return {
         thumbnail: thumbnail,
+        info: info,
     };
 }
 

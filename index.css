@@ -1,7 +1,32 @@
-body { height:100%;padding-top: 50px;}
-.leaflet-clickable{
-    animation:flow 3s  infinite
+body{
+    padding-top: 20px;
+    background-color: #F1F4F5
 }
+
+
+::-webkit-scrollbar {
+    width:5px;
+    height:5px;
+}
+::-webkit-scrollbar-track {
+    background-color: #F1F4F5;
+} /* the new scrollbar will have a flat appearance with the set background color */
+
+::-webkit-scrollbar-thumb {
+    background-color: #62A8EA;
+} /* this will style the thumb, ignoring the track */
+
+::-webkit-scrollbar-button {
+    width:0;
+    height:0;
+} /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
+
+::-webkit-scrollbar-corner {
+    background-color: black;
+}
+
+
+
 @keyframes explode {
     0% {
 
@@ -24,16 +49,45 @@ body { height:100%;padding-top: 50px;}
         opacity:0.5
     }
 }
-.scrollable-menu {
-    height:auto;
-    max-height:300px;
-    overflow-x:hidden;
-}
-.col-md-3{
-    top:50;bottom:10;right:0;position:fixed;overflow-y:auto
-}
-.grid-sizer,
-.grid-item{
 
-    width:24%;
+.leaflet-clickable{
+    animation:flow 3s  infinite
+}
+
+
+.panel {
+    padding: 20px;
+    overflow: auto;
+}
+.panel-body {
+    padding: 0;
+}
+
+
+#left {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#filter-panel {
+    flex: 0 1 auto;
+    overflow-y:auto;
+}
+
+#map-panel {
+    flex: 1 0 auto;
+    margin-top: 5px;
+    padding: 0;
+}
+
+
+#right {
+    display:flex;
+    flex-direction: column;
+    height:100%;
+}
+
+#content-panel {
+    flex: 1 0 0;
 }

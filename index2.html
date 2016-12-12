@@ -17,96 +17,17 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.min.js"></script>
     <script src="index.js"></script>
-        
-    <style> 
-        body{
-            padding-top:20px;
-            background-color: #F1F4F5
-        }
-        #mapPanel {
-            flex: 1 0 auto;
-            /*padding: 5px;*/
-            margin-top: 5px;   
-        }
-        #mapPanel .panel-body {
-            padding:0px;
-        }
-        #filters {
-            flex: 0 1 auto;
-            overflow-y:auto;
-        }
-        #contentPanel {
-            display:flex;
-            flex-direction: column;
-            height:100%;
-        }
-        #content {
-            flex: 1 0 auto;
-        }
-        .grid-sizer,
-        .grid-item{
-            width:24%;
-        }
-        .leaflet-clickable{
-            animation:flow 3s  infinite
-        }
-        #left {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        @keyframes explode {
-            0% {
 
-                Opacity:1
-            }
-            100%{
-
-
-                Opacity:0
-            }
-        }
-        @keyframes flow {
-            0% {
-                opacity:.5
-            }
-            50% {
-                opacity:1
-            }
-            100% {
-                opacity:0.5
-            }
-        }
-        ::-webkit-scrollbar {
-            width:5px;
-            height:5px;
-        }
-        ::-webkit-scrollbar-track {
-            background-color: #F1F4F5;
-        } /* the new scrollbar will have a flat appearance with the set background color */
-        
-        ::-webkit-scrollbar-thumb {
-            background-color: #62A8EA; 
-        } /* this will style the thumb, ignoring the track */
-        
-        ::-webkit-scrollbar-button {
-            width:0;
-            height:0;
-        } /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
-        
-        ::-webkit-scrollbar-corner {
-            background-color: black;
-        }
-    </style>
+    <link href="index.css" rel="stylesheet">
 </head>
 
 <body >
 
     <div class="col-md-4 col-sm-4" id="left">
-        <div class="panel panel-bordered" id="filters" >
-            <div class="panel-body" style="overflow-y:auto">
+        <div class="panel panel-bordered" id="filter-panel" >
+            <div class="panel-body">
                 <h4 class="example-title">Filters<div class="pull-right"><input type="checkbox" class="js-switch" checked>&nbspLocatie</div></h4>
-                <div class="list-group list-group-gap" id="categorieDropdown">
+                <div>
                     <a href="javascript:void(0)" class="list-group-item" name="voeding">voeding</a>
                     <a href="javascript:void(0)" class="list-group-item" name="mobiliteit">mobiliteit</a>
                     <a href="javascript:void(0)" class="list-group-item" name="wonen">wonen</a>
@@ -114,53 +35,25 @@
                     <a href="javascript:void(0)" class="list-group-item" name="ontmoeten">ontmoeten</a>
                     <a href="javascript:void(0)" class="list-group-item" name="geen categorie">geen categorie</a>
                 </div>
-                 <!--<ul class="site-menu-scroll-wrap" id="categorieDropdown">
-                    <li class="site-menu-section site-menu-item">
-                        <a href="#" name="voeding">
-                            <svg width="15" height="10">
-                                <circle cx="5" cy="5" r="5" stroke="orange" fill="orange"></circle>
-                            </svg>Voeding</a>
-                    </li>
-                    <li class="site-menu-section site-menu-item">
-                        <a href="#" name="mobiliteit">
-                            <svg width="15" height="10">
-                                <circle cx="5" cy="5" r="5" stroke="yellow" fill="yellow"></circle>
-                            </svg>Mobiliteit</a>
-                    </li>
-                    <li class="site-menu-section site-menu-item">
-                        <a href="#" name="wonen">
-                            <svg width="15" height="10">
-                                <circle cx="5" cy="5" r="5" stroke="#58fa3c" fill="#58fa3c"></circle>
-                            </svg>Wonen</a>
-                    </li>
-                    <li class="site-menu-section site-menu-item">
-                        <a href="#" name="consuminderen">
-                            <svg width="15" height="10">
-                                <circle cx="5" cy="5" r="5" stroke="blue" fill="blue"></circle>
-                            </svg>Consuminderen</a>
-                    </li>
-                    <li class="site-menu-section site-menu-item">
-                        <a href="#" name="geen categorie">
-                            <svg width="15" height="10">
-                                    <circle cx="5" cy="5" r="5" stroke="purple" fill="purple"></circle>
-                            </svg>Geen categorie</a>
-                    </li>
-                </ul>-->
             </div>
         </div>
-        <div class="panel" id="mapPanel">
+
+        <div class="panel" id="map-panel">
             <div class="panel-body" >
                 <div id="map" style="height:200px"></div>
             </div>
         </div>
     </div>
-    <div class="col-md-8 col-sm-8" id="contentPanel">
-        <div class="panel" id="content">
+
+
+    <div class="col-md-8 col-sm-8" id="right">
+        <div class="panel" id="content-panel">
             <div class="panel-body">
                 <div class="grid" id="thumbnails"></div>
             </div>
         </div>
     </div>
+
 
     <div class="modal">
         <div class="modal-dialog modal-lg">
