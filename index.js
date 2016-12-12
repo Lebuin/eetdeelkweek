@@ -7,11 +7,11 @@
 
 templates = {};
 templates.thumbnail = '\
-<div class="<%= categorie %> grid-item thumbnail" id="<%= id %>">\
-    <img class="img-responsive" style="margin:0" src="images/<%= foto %>" />\
+<div class="<%= _.join(categories, " ") %> grid-item thumbnail" id="<%= id %>">\
+    <img class="img-responsive" style="margin:0" src="images/<%= image %>" />\
     <div class="caption">\
         <h5 style="text-align:center">\
-            <%= naam %>\
+            <%= name %>\
         </h5>\
     </div>\
 </div>';
@@ -33,8 +33,8 @@ templates.info = '\
 <p><a href="<%= website %>">Website</a></p>';
 
 
-var compileTemplate = {};
-for(var key in templates) {
+let compileTemplate = {};
+for(let key in templates) {
     compileTemplate[key] = _.template(templates[key]);
 }
 
@@ -44,7 +44,7 @@ for(var key in templates) {
  * Global variables *
  ********************/
 
-var categories = {
+let categories = {
     voeding: {
         name: 'Voeding',
         color: '#F44336',
@@ -66,13 +66,29 @@ var categories = {
     },
 };
 
-var selected = {
+let selected = {
     categories: {},
     location: true,
-}
+};
 
-var items = {};
-var groups = {};
+let items = {};
+
+
+
+
+/******************
+ * Initialization *
+ ******************/
+
+window.onload = function() {
+    var map = createMap();
+
+    getItems(function(localItems) {
+        items = localItems;
+        filterItems();
+    });
+};
+
 
 
 /***********
@@ -80,7 +96,8 @@ var groups = {};
  ***********/
 
 function createMap() {
-    var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16})
+    var map = L.map('map',{center:[51.055,3.73],zoom:12,maxZoom:16});
+
     var Stamen_Watercolor = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: 'abcd',
@@ -88,6 +105,7 @@ function createMap() {
         maxZoom: 16,
         ext: 'png'
     }).addTo(map);
+
     var Stamen_TonerLabels = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: 'abcd',
@@ -110,7 +128,7 @@ function geoJsonMarkerOptions(feature) {
         fillOpacity: 1,
         fillColor: categories[feature.properties.categorie].color,
     };
-};
+}
 
 
 function setLocationSelected(value) {
@@ -130,6 +148,7 @@ function toggleCategory(category) {
     filterItems();
 }
 
+
 function filterItems() {
     //TODO: update the masonry list based on the selected categories,
     //whether to show points with/without location and the map position
@@ -137,330 +156,183 @@ function filterItems() {
 }
 
 
-window.onload = function() {
-    var map = createMap();
+function loadItem(id) {
+    //TODO: show the item with 'id' in a modal dialog
 
-    var features = [];
-    var points = L.geoJson(features,{
-            pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, geoJsonMarkerOptions(feature));
-            }
-        }).addTo(map);
-
-    // define eventlisteners for marker layer
-    function eventlisteners() {
-        function panelfill(properties) {
-            var html = compileTemplate.info(properties);
-
-            $('#panel').html(html)
-            $('#panel img').on('mouseover',function(){
-                try {
-                    map.removeLayer(found)
-                } catch(e) {
-
-                }
-                found=L.geoJson(turf.point([properties.longitude,properties.latitude]),{
-                    pointToLayer:function(feature,latlng){
-                        return L.circleMarker(latlng,{
-                            clickable:false,
-                            radius:10,
-                            fillColor:'yellow',
-                            opacity:1,
-                            color:"yellow",
-                            fillOpacity:0.7,
-                            })
-                }}).addTo(map)
-                d3.selectAll("path").transition().duration(1000).style("opacity",0)
-                });
-            $('#panel span').on('click',function(){
-                if (properties.latitude!='0') {
-                    map.setView([properties.latitude,properties.longitude],16)
-                    $("a[href='#top']").click(function() {
-                        $("html, body").animate({ scrollTop: 0 }, "fast");
-                        return false;
-                        });
-                }
-            });
-        }
-
-        $grid.on("mouseover",'.grid-item',function(){
-            console.log(this)
-            that=featuredict[this.id]
-            try{map.removeLayer(found)}catch(e){}
-
-            found=L.geoJson(turf.point([that.longitude,that.latitude]),{
-                pointToLayer:function(feature,latlng){
-                    return L.circleMarker(latlng,{
-                        clickable:false,
-                        radius:10,
-                        fillColor:'yellow',
-                        opacity:1,
-                        color:"yellow",
-                        fillOpacity:0.7,
-                        })
-                }}).addTo(map)
-            d3.selectAll("path").transition().duration(1000).style("opacity",0)
-
-            })
-        $grid.on("click",".grid-item",()=>{panelfill(featuredict[this.id])})
-        $grid2.on("click",".grid-item",()=>{
-            console.log(this.id)
-            panelfill(featuredict_noloc[this.id])})
-        points.on("mouseover",function(e){
-            panelfill(e.layer.feature.properties)
-        });
-
-        points.on('click',function(e){
-            map.setView(e.latlng,16)
-        })
-    }
-
-
-    filters={}
-    selection = []
-    // define filtering on marker layer
-    function filter_points(cat) {
-
-        if (_.isEmpty(cat)){
-            filters = {};
-            selection = features;
-        } else {
-            _.forEach(cat, (value,key)=>{
-                filters[key]=value
-            })
-        }
-
-        if (!_.isEmpty(selection)) {old_selection = selection;selection=features} else {old_selection = features; selection=features}
-
-        try {
-                map.removeEventListener('mouseover')
-                map.removeEventListener('click')
-                map.removeLayer(points)
-
-        } catch (e){
-
-        }
-
-        if (_.has(filters, 'categorie')){
-            console.log(filters.categorie)
-            selection = turf.filter(selection,'categorie',filters["categorie"])
-        }
-        if (_.has(filters,'wijk')){
-            selection = turf.within(selection, turf.featurecollection([filters.wijk]))
-        }
-
-        nocoords=[]
-        for (i=0;i<selection.features.length;i++) {
-            if (parseFloat(selection.features[i].properties.latitude)==0) {
-                nocoords.push(selection.features[i])
-            }
-        }
-
-        bounds=turf.bboxPolygon(map.getBounds().toBBoxString().split(",").map(parseFloat))
-        selection=turf.within(selection,turf.featurecollection([bounds]))
-        //selection.features=selection.features.concat(nocoords)
-
-        old_oids=[]
-        for (var item in old_selection.features){
-            old_oids.push(old_selection.features[item].properties.oid)
-        }
-        new_oids=[]
-        for (var item in selection.features){
-            new_oids.push(selection.features[item].properties.oid)
-        }
-
-
-        for (i in selection.features){
-            var properties = selection.features[i].properties;
-
-            if($.inArray(properties.oid, old_oids)==-1) {
-                $('#thumbnails').append(properties.thumbnail);
-                $item = $('#' + properties.oid);
-                $grid.prepend($item).masonry("prepended", $item);
-            }
-        }
-        for (i in old_selection.features) {
-            var properties = old_selection.features[i].properties
-
-            if($.inArray(properties.oid, new_oids)==-1) {
-                var $item = $('#' + properties.oid);
-                $grid.masonry("remove", $item).masonry("layout")
-            }
-        }
-
-        points = L.geoJson(selection,{
-        pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, geoJsonMarkerOptions(feature));
-        }}).addTo(map);
-
-        eventlisteners()
-        setTimeout(function(){$grid.masonry('layout')},500)
-    }
-
-
-    // fetch data
-    $.ajax({
-        type: "GET",
-        url: "items.csv",
-        success: function(response) {
-            var points_noloc = [];
-
-            var rows = CSVToArray(response);
-            var header = rows[0];
-
-            for(var i = 1; i < rows.length; i++) {
-                var item = _.zipObject(header, rows[i]);
-
-                // Ignore items without categorie
-                if(item.categorie || item.groep) {
-                    var point = addrow(item, i, points, thumbnails);
-
-                    if(point.properties.groep) {
-                        var groep = point.properties.groep;
-
-                        var groepPoint = null;
-                        for(var k = points_noloc.length - 1; k >= 0; k--) {
-                            if(points_noloc[k].properties.naam === point.properties.groep) {
-                                groepPoint = points_noloc[k];
-                                break;
-                            }
-                        }
-
-                        if(groepPoint) {
-                            for(var key in point.properties) {
-                                if(!point.properties[key]) {
-                                    point.properties[key] = groepPoint.properties[key];
-                                }
-                            }
-
-                            if(!groups.hasOwnProperty(groep)) {
-                                groups[groep] = [];
-                            }
-                            groups[groep].push(point);
-
-                        } else {
-                            console.error('Groep niet gevonden:', groep);
-                        }
-
-
-                    } else if(point.properties.latitude) {
-                        points.addData(point);
-
-                    } else {
-                        points_noloc.push(point);
-                    }
-                }
-            }
-
-
-            features = points.toGeoJSON()
-            features_noloc = _.filter(points_noloc,'properties.oid')
-
-            featuredict = {};
-            var thumbnaildiv = [];
-            _.forEach(features.features, value => {
-                featuredict[value.properties.oid] = value.properties;
-                thumbnaildiv.push(value.properties.thumbnail);
-            });
-
-            featuredict_noloc = {};
-            var thumbnaildiv_noloc = [];
-            _.forEach(features_noloc, value => {
-                featuredict_noloc[value.properties.oid] = value.properties
-                thumbnaildiv_noloc.push(value.properties.thumbnail);
-            });
-
-            $('#thumbnails').html(thumbnaildiv)
-            $('#thumbnails_noloc').html(thumbnaildiv_noloc)
-
-            function filterPointsMove() {
-                filter_points({move: true});
-            }
-            map.addEventListener('dragend', filterPointsMove);
-            map.addEventListener('zoomend', filterPointsMove);
-            map.addEventListener('autopanstart', filterPointsMove);
-            $grid=$('.grid').masonry({
-                columnWidth:'.grid-item',
-                itemSelector:'.grid-item',
-                gutter:10
-            })
-            $grid2=$('.grid2').masonry({
-                columnWidth:'.grid-item',
-                itemSelector:'.grid-item',
-                gutter:10
-            })
-
-            $grid.imagesLoaded(function(){$grid.masonry('layout')})
-            $grid2.imagesLoaded(function(){$grid2.masonry('layout')})
-            eventlisteners()
-
-        },
-        error: function (response){
-            console.log('failed to load items.csv');
-        }
-    });
-
-    $('#categorieDropdown a').click(function(){
-        let name = $(this).attr('name')
-        filter_points({'categorie':name})
-    })
-
-    $('#Homereset').click(()=>{
-        filter_points({});
-        map.removeLayer(wijk)
-        map.setView([51.055,3.73],12,{'animate':true,'pan':{'duration':1}})})
 }
 
 
 
-
-function addrow(element, index, value) {
-    var naam = element.naam;
-    var groep = element.groep;
-    var categorie = element.categorie;
-    var categorie2 = element.categorie2;
-    var website = element.website;
-    var foto = element.foto ? element.foto.split('.')[0].concat('.jpg') : '';
-    var tekstje = element.tekstje;
+/***************************************
+ * Functions to build the items object *
+ ***************************************/
 
 
-    // Adres
-    var adres = element.adres;
-    if(element.adresextra) {
-        adres += ' (' + element.adresextra + ')';
-    }
+function getItems(callback) {
+    // fetch data
+    $.ajax({
+        type: "GET",
+        url: "items.csv",
 
-    // Latlon
-    var latitude = parseFloat(element.latitude);
-    var longitude = parseFloat(element.longitude);
+        success: function(response) {
+            let items = getItemsFromResponse(response);
+            callback(items);
+        },
 
-    if(!_.isFinite(latitude) || !_.isFinite(longitude)) {
-        latitude = 0;
-        longitude = 0;
-    }
-
-
-    var thumbnail = compileTemplate.thumbnail({
-        categorie: categorie,
-        id: index,
-        foto: foto,
-        naam: naam,
+        error: function (response){
+            console.log('failed to load items.csv');
+        }
     });
+}
 
 
-    return turf.point([longitude, latitude], {
-        naam: naam,
-        groep: groep,
+function getItemsFromResponse(response) {
+    var items = {};
+
+    var rows = CSVToArray(response);
+    var header = rows[0];
+
+    for(var i = 1; i < rows.length; i++) {
+        let item = getItem(i, header, rows[i]);
+
+        if(item && item.group) {
+            // If the element is in a group: fill up missing properties
+            let success = fillItemFromGroup(item, items);
+
+            if(!success) {
+                item = null;
+            }
+        }
+
+
+        if(item) {
+            // Compile templates
+            item.html = getItemHtml(item);
+
+            // Store
+            items[item.id] = item;
+        }
+    }
+
+    return items;
+}
+
+
+function getItem(id, header, row) {
+    var element = _.zipObject(header, row);
+
+    // Categories;
+    let categories = element.categorie ? element.categorie.split(',').map(_.trim) : [];
+
+    // Group
+    let group = element.groep ? element.groep : null;
+
+    // Ignore items without categories or group
+    if(categories.length === 0 && group === null) {
+        return null;
+    }
+
+
+    // Name, website, description
+    let name = element.naam ? element.naam : '';
+    let website = element.website ? element.website : '';
+    let description = element.tekstje ? element.tekstje : '';
+
+    // Coordinate
+    let longitude = parseFloat(element.longitude);
+    let latitude = parseFloat(element.latitude);
+    let hasCoordinate = _.isFinite(latitude) && _.isFinite(longitude);
+
+    if(!hasCoordinate) {
+        latitude = null;
+        longitude = null;
+    }
+
+
+    // Address
+    let address = element.adres ? element.adres : '';
+    if(element.adresextra) {
+        if(address) {
+            address += ' ';
+        }
+        address += '(' + element.adresextra + ')';
+    }
+
+    // Image
+    let image = element.foto ? element.foto.split('.')[0].concat('.jpg') : '';
+
+
+    // Geographic point used for filtering
+    let point = hasCoordinate ? turf.point([longitude, latitude]) : null;
+
+
+    // Make final object
+    let item = {
+        id: id,
+
+        name: name,
         website: website,
-        categorie: categorie,
-        foto: foto,
-        tekstje: tekstje,
-        oid: index,
+        address: address,
+        categories: categories,
+        image: image,
+        description: description,
+
+        isGroup: false,
+        group: group,
+
+        hasCoordinate: hasCoordinate,
         latitude: latitude,
         longitude: longitude,
-        adres: adres,
-        thumbnail: thumbnail,
+
+        point: point,
+    };
+
+    return item;
+}
+
+
+function fillItemFromGroup(item, items) {
+    let success = false;
+
+    let groupItems = _.filter(items, function(groupItem) {
+        return groupItem.name === item.group;
     });
+
+    if(groupItems.length === 0) {
+        console.error('Group not found for item', item);
+
+    } else if(groupItems.length > 1) {
+        console.error('Multiple groups found for item %s:', item, groupItems);
+
+    } else {
+        let groupItem = groupItems[0];
+        groupItem.isGroup = true;
+
+        for(let key in groupItem) {
+            if(!item[key]) {
+                item[key] = groupItem[key];
+            }
+        }
+
+        success = true;
+    }
+
+    return success;
+}
+
+
+function getItemHtml(item) {
+    // Compile templates
+    let thumbnail = compileTemplate.thumbnail({
+        id: item.id,
+        name: item.name,
+        image: item.image,
+        categories: item.categories,
+    });
+
+    return {
+        thumbnail: thumbnail,
+    };
 }
 
 
