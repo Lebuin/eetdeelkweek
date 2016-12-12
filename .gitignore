@@ -1,3 +1,4 @@
 *.~lock*
 *.sublime-project
 *.sublime-workspace
+node-modules

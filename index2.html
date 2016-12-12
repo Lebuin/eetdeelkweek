@@ -1,0 +1,158 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="site.min.css">
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="http://api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.0/turf.min.js"></script>
+    <script src="leaflet.js"></script>
+    <link rel="stylesheet" href="leaflet.css">
+    <script src="lodash.min.js"></script>
+    <script src="https://unpkg.com/masonry-layout@4.0/dist/masonry.pkgd.min.js"></script>
+    <script src="https://unpkg.com/imagesloaded@4.1/imagesloaded.pkgd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
+    <script src="wijken.geojson"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/switchery/0.8.2/switchery.min.js"></script>
+    <script src="index.js"></script>
+        
+    <style> 
+        body{
+            padding-top:20px;
+            background-color: #F1F4F5
+        }
+        .mapPanel {
+            padding:5
+        }
+        #content {
+            height:calc(100% - 40px);
+            overflow-y:scroll;
+        }
+        .grid-sizer,
+        .grid-item{
+            width:24%;
+        }
+        .leaflet-clickable{
+            animation:flow 3s  infinite
+        }
+        @keyframes explode {
+            0% {
+
+                Opacity:1
+            }
+            100%{
+
+
+                Opacity:0
+            }
+        }
+        @keyframes flow {
+            0% {
+                opacity:.5
+            }
+            50% {
+                opacity:1
+            }
+            100% {
+                opacity:0.5
+            }
+        }
+        ::-webkit-scrollbar {
+            width:5px;
+            height:5px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #F1F4F5;
+        } /* the new scrollbar will have a flat appearance with the set background color */
+        
+        ::-webkit-scrollbar-thumb {
+            background-color: #62A8EA; 
+        } /* this will style the thumb, ignoring the track */
+        
+        ::-webkit-scrollbar-button {
+            width:0;
+            height:0;
+        } /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
+        
+        ::-webkit-scrollbar-corner {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body >
+
+    <div class="col-md-4 col-sm-4" id="left">
+        <div class="panel panel-bordered" style="height:calc((100% - 60px)/2);" >
+            <div class="panel-body" style="overflow-y:auto">
+                <h4 class="example-title">Filters<div class="pull-right"><input type="checkbox" class="js-switch" checked>&nbspLocatie</div></h4>
+                <div class="list-group list-group-gap" id="categorieDropdown">
+                    <a href="javascript:void(0)" class="list-group-item" name="voeding">voeding</a>
+                    <a href="javascript:void(0)" class="list-group-item" name="mobiliteit">mobiliteit</a>
+                    <a href="javascript:void(0)" class="list-group-item" name="wonen">wonen</a>
+                    <a href="javascript:void(0)" class="list-group-item" name="consuminderen">consuminderen</a>
+                    <a href="javascript:void(0)" class="list-group-item" name="ontmoeten">ontmoeten</a>
+                    <a href="javascript:void(0)" class="list-group-item" name="geen categorie">geen categorie</a>
+                </div>
+                 <!--<ul class="site-menu-scroll-wrap" id="categorieDropdown">
+                    <li class="site-menu-section site-menu-item">
+                        <a href="#" name="voeding">
+                            <svg width="15" height="10">
+                                <circle cx="5" cy="5" r="5" stroke="orange" fill="orange"></circle>
+                            </svg>Voeding</a>
+                    </li>
+                    <li class="site-menu-section site-menu-item">
+                        <a href="#" name="mobiliteit">
+                            <svg width="15" height="10">
+                                <circle cx="5" cy="5" r="5" stroke="yellow" fill="yellow"></circle>
+                            </svg>Mobiliteit</a>
+                    </li>
+                    <li class="site-menu-section site-menu-item">
+                        <a href="#" name="wonen">
+                            <svg width="15" height="10">
+                                <circle cx="5" cy="5" r="5" stroke="#58fa3c" fill="#58fa3c"></circle>
+                            </svg>Wonen</a>
+                    </li>
+                    <li class="site-menu-section site-menu-item">
+                        <a href="#" name="consuminderen">
+                            <svg width="15" height="10">
+                                <circle cx="5" cy="5" r="5" stroke="blue" fill="blue"></circle>
+                            </svg>Consuminderen</a>
+                    </li>
+                    <li class="site-menu-section site-menu-item">
+                        <a href="#" name="geen categorie">
+                            <svg width="15" height="10">
+                                    <circle cx="5" cy="5" r="5" stroke="purple" fill="purple"></circle>
+                            </svg>Geen categorie</a>
+                    </li>
+                </ul>-->
+            </div>
+        </div>
+        <div class="panel" style="height:calc((100% - 60px)/2)">
+            <div class="panel-body mapPanel">
+                <div id="map" style="height:calc(100% - 10px); padding-bottom:20"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 col-sm-8">
+        <div class="panel" id="content">
+            <div class="panel-body">
+                <div class="grid" id="thumbnails"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div class="modal-body" id="panel"></div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
