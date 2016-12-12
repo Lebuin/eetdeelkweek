@@ -23,12 +23,25 @@
             padding-top:20px;
             background-color: #F1F4F5
         }
-        .mapPanel {
-            padding:5
+        #mapPanel {
+            flex: 1 0 auto;
+            /*padding: 5px;*/
+            margin-top: 5px;   
+        }
+        #mapPanel .panel-body {
+            padding:0px;
+        }
+        #filters {
+            flex: 0 1 auto;
+            overflow-y:auto;
+        }
+        #contentPanel {
+            display:flex;
+            flex-direction: column;
+            height:100%;
         }
         #content {
-            height:calc(100% - 40px);
-            overflow-y:scroll;
+            flex: 1 0 auto;
         }
         .grid-sizer,
         .grid-item{
@@ -36,6 +49,11 @@
         }
         .leaflet-clickable{
             animation:flow 3s  infinite
+        }
+        #left {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         @keyframes explode {
             0% {
@@ -85,7 +103,7 @@
 <body >
 
     <div class="col-md-4 col-sm-4" id="left">
-        <div class="panel panel-bordered" style="height:calc((100% - 60px)/2);" >
+        <div class="panel panel-bordered" id="filters" >
             <div class="panel-body" style="overflow-y:auto">
                 <h4 class="example-title">Filters<div class="pull-right"><input type="checkbox" class="js-switch" checked>&nbspLocatie</div></h4>
                 <div class="list-group list-group-gap" id="categorieDropdown">
@@ -130,13 +148,13 @@
                 </ul>-->
             </div>
         </div>
-        <div class="panel" style="height:calc((100% - 60px)/2)">
-            <div class="panel-body mapPanel">
-                <div id="map" style="height:calc(100% - 10px); padding-bottom:20"></div>
+        <div class="panel" id="mapPanel">
+            <div class="panel-body" >
+                <div id="map" style="height:200px"></div>
             </div>
         </div>
     </div>
-    <div class="col-md-8 col-sm-8">
+    <div class="col-md-8 col-sm-8" id="contentPanel">
         <div class="panel" id="content">
             <div class="panel-body">
                 <div class="grid" id="thumbnails"></div>
