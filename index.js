@@ -73,7 +73,7 @@ let categories = {
 
 let selected = {
     categories: {},
-    hasCoordinate: true,
+    hasCoordinate: false,
 };
 
 let items = {}, filteredItems = {};
@@ -88,7 +88,7 @@ let $grid, map, pointsLayer;
 function setEvents(){
 
     $('#left').on('click', '.list-group-item', function(e){
-        // name 
+        // name
         var name = e.target.getAttribute('name')
 
         toggleCategoryFilter(name)
@@ -187,11 +187,16 @@ function setHasCoordinateFilter(value) {
 
 
 function toggleCategoryFilter(category) {
-    if(selected.categories.hasOwnProperty(category)) {
+    // Only select a single categori
+    selected.categories = {};
+    selected.categories[category] = true;
+
+    // Select multiple categories
+    /*if(selected.categories.hasOwnProperty(category)) {
         delete selected.categories[category];
     } else {
         selected.categories[category] = true;
-    }
+    }*/
 
     filterItems();
 }
@@ -200,8 +205,8 @@ function toggleCategoryFilter(category) {
 function filterItems() {
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
-    let removeItems = _.omitBy(oldFilteredItems, function(val,key){_.has(filteredItems, key)});
-    let addItems = _.omitBy(filteredItems,function(val,key){_.has(oldFilteredItems, key)});
+    let removeItems = _.omitBy(oldFilteredItems, filteredItems.hasOwnProperty.bind(filteredItems));
+    let addItems = _.omitBy(filteredItems, oldFilteredItems.hasOwnProperty.bind(oldFilteredItems));
 
     // Remove all old elements
     _.forEach(removeItems, function(item) {
@@ -227,8 +232,6 @@ function filterItems() {
 
 
 function filterItem(item) {
-    let select = false
-
     // Items with a group should not be shown
     if(item.group) {
         return false;
@@ -251,7 +254,7 @@ function filterItem(item) {
 
     // Check if the item has a correct category
     if(_.keys(selected.categories).length === 0) {
-        return true
+        return true;
     }
 
     // _.forEach(item.categories, cat=>{
@@ -265,7 +268,7 @@ function filterItem(item) {
         }
     }
 
-    return false
+    return false;
 }
 
 
