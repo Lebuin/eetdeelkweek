@@ -105,4 +105,5 @@ body{
 
 #content-panel {
     flex: 1 0 0;
+    overflow-y:scroll;
 }
