@@ -113,10 +113,6 @@ function registerEventListeners() {
 function createMasonry() {
     let $grid = $('.grid');
 
-    $grid.imagesLoaded().progress(function() {
-        $grid.masonry('layout');
-    });
-
     $grid.masonry({
         columnWidth:'.grid-item',
         itemSelector:'.grid-item',
@@ -209,6 +205,9 @@ function filterItems() {
     });
 
     $grid.masonry('layout');
+    $grid.imagesLoaded().progress(function() {
+        $grid.masonry('layout');
+    });
 }
 
 
@@ -336,8 +335,8 @@ function getItem(id, header, row) {
     let description = element.tekstje ? element.tekstje : '';
 
     // Coordinate
-    let longitude = parseFloat(element.longitude);
-    let latitude = parseFloat(element.latitude);
+    let longitude = parseFloat(element.Longitude);
+    let latitude = parseFloat(element.Latitude);
     let hasCoordinate = _.isFinite(latitude) && _.isFinite(longitude);
 
     if(!hasCoordinate) {
