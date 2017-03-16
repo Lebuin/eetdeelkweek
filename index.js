@@ -91,7 +91,7 @@ function setEvents(){
         // name 
         var name = e.target.getAttribute('name')
 
-        filterItems(name)
+        toggleCategoryFilter(name)
 
     })
 }
@@ -198,12 +198,10 @@ function toggleCategoryFilter(category) {
 
 
 function filterItems() {
-    debugger
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
-
-    let removeItems = _.omitBy(oldFilteredItems, filteredItems.hasOwnProperty);
-    let addItems = _.omitBy(filteredItems, oldFilteredItems.hasOwnProperty);
+    let removeItems = _.omitBy(oldFilteredItems, function(val,key){_.has(filteredItems, key)});
+    let addItems = _.omitBy(filteredItems,function(val,key){_.has(oldFilteredItems, key)});
 
     // Remove all old elements
     _.forEach(removeItems, function(item) {
@@ -229,6 +227,8 @@ function filterItems() {
 
 
 function filterItem(item) {
+    let select = false
+
     // Items with a group should not be shown
     if(item.group) {
         return false;
@@ -251,16 +251,21 @@ function filterItem(item) {
 
     // Check if the item has a correct category
     if(_.keys(selected.categories).length === 0) {
-        return true;
+        return true
     }
 
-    for(let i = 0; i < item.categories; i++) {
+    // _.forEach(item.categories, cat=>{
+    //     if (_.includes(_.keys(selected.categories), cat)){
+    //         return true
+    //     }
+    // })
+    for (let i = 0; i < item.categories.length; i++) {
         if(_.has(selected.categories, item.categories[i])) {
             return true;
         }
     }
 
-    return false;
+    return false
 }
 
 
