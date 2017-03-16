@@ -74,29 +74,31 @@ body{
     height: 100%;
 }
 #left > .panel {
-    flex: 1 0;
-    display: flex;
-    flex-direction: column;
-
+    flex: 0 1 auto;
 }
 
-#map-panel {
+#left > #map-panel {
     padding: 0;
-}
-#left > .panel > .panel-body {
     flex: 1 0;
+    border: 0;
+
     display: flex;
-    flex-direction: column;
+}
+#map {
+    flex: 1 0;
 }
 
 #filter-panel {
     flex: 0 1 auto;
     overflow-y:auto;
 }
-
-#map {
-    flex: 1 0
+.filter-list {
+    display: flex;
 }
+.filter-column {
+    1 0;
+}
+
 
 #right {
     display:flex;

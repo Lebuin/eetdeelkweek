@@ -30,21 +30,23 @@
         <div class="panel panel-bordered" id="filter-panel" >
             <div class="panel-body">
                 <h4 class="example-title">Filters<div class="pull-right"><input type="checkbox" class="js-switch" checked>&nbspLocatie</div></h4>
-                <div>
-                    <a href="javascript:void(0)" class="list-group-item" name="voeding">voeding</a>
-                    <a href="javascript:void(0)" class="list-group-item" name="mobiliteit">mobiliteit</a>
-                    <a href="javascript:void(0)" class="list-group-item" name="wonen">wonen</a>
-                    <a href="javascript:void(0)" class="list-group-item" name="consuminderen">consuminderen</a>
-                    <a href="javascript:void(0)" class="list-group-item" name="ontmoeten">ontmoeten</a>
-                    <a href="javascript:void(0)" class="list-group-item" name="geen categorie">geen categorie</a>
+                <div class="filter-list">
+                    <div class="filter-column">
+                        <a href="javascript:void(0)" class="list-group-item" name="voeding">voeding</a>
+                        <a href="javascript:void(0)" class="list-group-item" name="mobiliteit">mobiliteit</a>
+                        <a href="javascript:void(0)" class="list-group-item" name="wonen">wonen</a>
+                    </div>
+                    <div class="filter-column">
+                        <a href="javascript:void(0)" class="list-group-item" name="consuminderen">consuminderen</a>
+                        <a href="javascript:void(0)" class="list-group-item" name="ontmoeten">ontmoeten</a>
+                        <a href="javascript:void(0)" class="list-group-item" name="geen categorie">geen categorie</a>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="panel" id="map-panel">
-            <div class="panel-body" >
-                <div id="map"></div>
-            </div>
+            <div id="map"></div>
         </div>
     </div>
 
