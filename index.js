@@ -115,7 +115,7 @@ function createMasonry() {
 
     $grid.imagesLoaded().progress(function() {
         $grid.masonry('layout');
-    });
+    })
 
     $grid.masonry({
         columnWidth:'.grid-item',
