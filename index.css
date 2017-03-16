@@ -72,18 +72,30 @@ body{
     flex-direction: column;
     height: 100%;
 }
+#left > .panel {
+    flex: 1 0;
+    display: flex;
+    flex-direction: column;
+   
+}
+
+#map-panel {
+    padding: 0;
+}
+#left > .panel > .panel-body {
+    flex: 1 0;
+    display: flex;
+    flex-direction: column;
+}
 
 #filter-panel {
     flex: 0 1 auto;
     overflow-y:auto;
 }
 
-#map-panel {
-    flex: 1 0 auto;
-    margin-top: 5px;
-    padding: 0;
+#map {
+    flex: 1 0
 }
-
 
 #right {
     display:flex;
