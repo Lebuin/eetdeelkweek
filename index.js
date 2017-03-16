@@ -81,6 +81,21 @@ let items = {}, filteredItems = {};
 let $grid, map, pointsLayer;
 
 
+/******************
+ * setEvents      *
+ ******************/
+
+function setEvents(){
+
+    $('#left').on('click', '.list-group-item', function(e){
+        // name 
+        var name = e.target.getAttribute('name')
+
+        filterItems(name)
+
+    })
+}
+
 
 /******************
  * Initialization *
@@ -97,6 +112,8 @@ window.onload = function() {
         items = localItems;
         filterItems();
     });
+
+    setEvents()
 };
 
 
@@ -181,6 +198,7 @@ function toggleCategoryFilter(category) {
 
 
 function filterItems() {
+    debugger
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
 
