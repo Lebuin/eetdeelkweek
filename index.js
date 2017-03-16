@@ -120,7 +120,7 @@ function createMasonry() {
     $grid.masonry({
         columnWidth:'.grid-item',
         itemSelector:'.grid-item',
-        gutter:10
+        gutter:10,
     });
 
     return $grid;

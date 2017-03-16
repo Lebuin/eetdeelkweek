@@ -63,6 +63,9 @@ body{
     padding: 0;
 }
 
+.grid-item {
+    width: 24%;
+}
 
 #left {
     display: flex;
