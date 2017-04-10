@@ -57,6 +57,9 @@ body {
 a.list-group-item {
     border-radius: 3px;
 }
+.thumbnail {
+    padding: 0;
+}
 
 
 ::-webkit-scrollbar {
