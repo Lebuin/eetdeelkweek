@@ -98,12 +98,9 @@ let pointsLayer = L.layerGroup([], {style: geoJsonMarkerOptions})
 function setEvents(){
 
     $('#left').on('click', '.list-group-item', function(e){
-        // name
-        var name = e.target.getAttribute('name')
-
-        toggleCategoryFilter(name)
-
-    })
+        var category = e.target.getAttribute('name');
+        toggleCategoryFilter(category);
+    });
 
     $("div.grid").on('click','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id')
@@ -113,6 +110,11 @@ function setEvents(){
 
     })
     map.on('moveend', function(){console.log('moved'); filterItems()})
+
+    $('#left').on('click', '#location-switch', function(e) {
+        var hasCoordinate = e.target.checked;
+        setHasCoordinateFilter(hasCoordinate);
+    });
 }
 
 
@@ -135,7 +137,7 @@ window.onload = function() {
         filterItems();
     });
 
-    setEvents()
+    setEvents();
 };
 
 
@@ -209,16 +211,19 @@ function setHasCoordinateFilter(value) {
 
 
 function toggleCategoryFilter(category) {
-    // Only select a single categori
     selected.categories = {};
-    selected.categories[category] = true;
 
-    // Select multiple categories
-    /*if(selected.categories.hasOwnProperty(category)) {
-        delete selected.categories[category];
-    } else {
+    if(category !== 'all') {
+        // Only select a single category
         selected.categories[category] = true;
-    }*/
+
+        // Select multiple categories
+        /*if(selected.categories.hasOwnProperty(category)) {
+            delete selected.categories[category];
+        } else {
+            selected.categories[category] = true;
+        }*/
+    }
 
     filterItems();
 }
@@ -229,28 +234,28 @@ function getColor(categorie){
 function filterItems() {
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
-    let removeItems = _.omitBy(oldFilteredItems, filteredItems.hasOwnProperty.bind(filteredItems));
-    let addItems = _.omitBy(filteredItems, oldFilteredItems.hasOwnProperty.bind(oldFilteredItems));
+    let removeItems = _.omitBy(oldFilteredItems, filter.bind(filteredItems));
+    let addItems = _.omitBy(filteredItems, filter.bind(oldFilteredItems));
+
+    let removeElements = _.map(removeItems, function(item) {
+        return item.$thumbnailElement[0];
+    });
 
     // Remove all old elements
     _.forEach(removeItems, function(item) {
         let $element = item.$thumbnailElement;
         item.$thumbnailElement = null;
-
-        $element.remove();
-        $grid.masonry('remove', $element).masonry('layout');
     });
 
     // Add all new elements
     _.forEach(addItems, function(item) {
-        let $element = $(item.html.thumbnail).prependTo($grid);
+        let $element = $(item.html.thumbnail);
         item.$thumbnailElement = $element;
-        $grid.masonry('prepended', $element).masonry('layout');
+        //$grid.masonry('appended', $element);
     });
 
-    $grid.masonry('layout');
-    $grid.imagesLoaded().progress(function() {
-        $grid.masonry('layout');
+    let addElements = _.map(addItems, function(item) {
+        return item.$thumbnailElement[0];
     });
 
     pointsLayer.clearLayers()
@@ -263,6 +268,31 @@ function filterItems() {
             fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
         }))
     })
+
+    $grid
+    .masonry('remove', removeElements)
+    .prepend(addElements)
+    .masonry('prepended', addElements)
+    .masonry('layout')
+    .imagesLoaded().progress(masonryLayout);
+
+    $('.category-item').removeClass('active');
+    if(_.keys(selected.categories).length === 0) {
+        $('.category-item[name="all"]').addClass('active');
+    } else {
+        _.forEach(selected.categories, function(value, category) {
+            $('.category-item[name="'+category+'"]').addClass('active');
+        });
+    }
+}
+
+
+function filter(object, key) {
+    return this.hasOwnProperty(key);
+}
+
+function masonryLayout() {
+    $grid.masonry('layout');
 }
 
 
@@ -292,11 +322,6 @@ function filterItem(item) {
         return true;
     }
 
-    // _.forEach(item.categories, cat=>{
-    //     if (_.includes(_.keys(selected.categories), cat)){
-    //         return true
-    //     }
-    // })
     for (let i = 0; i < item.categories.length; i++) {
         if(_.has(selected.categories, item.categories[i])) {
             return true;
