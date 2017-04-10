@@ -7,7 +7,7 @@
 
 templates = {};
 templates.thumbnail = '\
-<div class="<%= _.join(categories, " ") %> grid-item thumbnail" id="<%= id %>">\
+<div class="<%= _.join(categories, " ") %> grid-item thumbnail text-center" id="<%= id %>">\
     <img class="img-responsive" style="margin:0" src="images/<%= image %>" />\
     <div class="caption">\
         <h5 style="text-align:center">\
@@ -38,7 +38,16 @@ for(let key in templates) {
     compileTemplate[key] = _.template(templates[key]);
 }
 
-
+let modalTemplate = _.template('\
+<div class="thumbnail">\
+<img src="images/${src}">\
+<div class="caption">\
+<h3 class="text-center">${title}</h3>\
+<p>${description}</p>\
+</div>\
+</div>\
+\
+')
 
 /********************
  * Global variables *
@@ -78,8 +87,9 @@ let selected = {
 
 let items = {}, filteredItems = {};
 
-let $grid, map, pointsLayer;
+let $grid, map;
 
+let pointsLayer = L.layerGroup([], {style: geoJsonMarkerOptions})
 
 /******************
  * setEvents      *
@@ -91,6 +101,15 @@ function setEvents(){
         var category = e.target.getAttribute('name');
         toggleCategoryFilter(category);
     });
+
+    $("div.grid").on('click','div.grid-item', function(e){
+        let id = $(e.target).closest('div.grid-item').attr('id')
+        let item = items[id]
+        $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name}))
+        $('#myModal').modal('show')
+
+    })
+    map.on('moveend', function(){console.log('moved'); filterItems()})
 
     $('#left').on('click', '#location-switch', function(e) {
         var hasCoordinate = e.target.checked;
@@ -107,11 +126,14 @@ window.onload = function() {
     $grid = createMasonry();
 
     map = createMap();
+    
+    pointsLayer.addTo(map)
 
     registerEventListeners();
 
     getItems(function(localItems) {
         items = localItems;
+
         filterItems();
     });
 
@@ -206,7 +228,9 @@ function toggleCategoryFilter(category) {
     filterItems();
 }
 
-
+function getColor(categorie){
+    return categories[categorie].color
+}
 function filterItems() {
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
@@ -233,6 +257,17 @@ function filterItems() {
     let addElements = _.map(addItems, function(item) {
         return item.$thumbnailElement[0];
     });
+
+    pointsLayer.clearLayers()
+    _.forEach(_.filter(filteredItems, function(o){return o.hasCoordinate}), function(item){
+        pointsLayer.addLayer(L.circleMarker([item.latitude, item.longitude], {
+            radius: 7,
+            weight: 1,
+            opacity:0.3,
+            fillOpacity: 1,
+            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
+        }))
+    })
 
     $grid
     .masonry('remove', removeElements)
@@ -269,8 +304,8 @@ function filterItem(item) {
     }
 
     // Check if items should have a coordinate
-    if(item.hasCoordinate !== selected.hasCoordinate) {
-        return false;
+    if (selected.hasCoordinate & !item.hasCoordinate){
+        return false
     }
 
     // Check if the item is shown on the map

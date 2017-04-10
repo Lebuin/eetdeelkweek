@@ -108,7 +108,7 @@ a.list-group-item {
     }
 }
 
-.leaflet-clickable{
+.leaflet-interactive{
     animation:flow 3s  infinite
 }
 
@@ -124,6 +124,13 @@ a.list-group-item {
 .grid-item {
     width: 24%;
     margin: 5px 0.5%;
+}
+
+.grid-item:hover{
+    background-color: #F1F7EA;
+    box-shadow: 2px 2px 5px #888888;
+    transition: 0.3s ease;
+    cursor:pointer;
 }
 
 #left {
@@ -179,4 +186,12 @@ a.list-group-item {
 #content-panel {
     flex: 1 0 0;
     overflow-y:scroll;
+}
+
+#myModal .thumbnail {
+    border: none
+}
+
+#myModal img{
+    max-height:400px;
 }
