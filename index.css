@@ -138,6 +138,8 @@ a.list-group-item {
     background-color: #E8F1F8;
 }
 
+
+
 #left {
     display: flex;
     flex-direction: column;
@@ -194,7 +196,8 @@ a.list-group-item {
 }
 
 #myModal .thumbnail {
-    border: none
+    border: none;
+    margin: 0;
 }
 
 #myModal img{

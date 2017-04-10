@@ -45,9 +45,11 @@ let modalTemplate = _.template('\
 <h3 class="text-center">${title}</h3>\
 <p>${description}</p>\
 <p>${address}</p>\
-<a href="${href}">${href}</a>\
 </div>\
-<button class="btn btn-primary pull-right" data-dismiss="modal">Sluit</button>\
+<div class="caption row">\
+<a class="col-md-10" href="${href}">${href}</a>\
+<button class="col-md-2 btn btn-primary pull-right" data-dismiss="modal">Sluit</button>\
+</div>\
 </div>\
 \
 ')
