@@ -115,7 +115,7 @@ window.onload = function() {
         filterItems();
     });
 
-    setEvents()
+    setEvents();
 };
 
 
@@ -210,29 +210,36 @@ function toggleCategoryFilter(category) {
 function filterItems() {
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
-    let removeItems = _.omitBy(oldFilteredItems, filteredItems.hasOwnProperty.bind(filteredItems));
-    let addItems = _.omitBy(filteredItems, oldFilteredItems.hasOwnProperty.bind(oldFilteredItems));
+    let removeItems = _.omitBy(oldFilteredItems, filter.bind(filteredItems));
+    let addItems = _.omitBy(filteredItems, filter.bind(oldFilteredItems));
+
+    let removeElements = _.map(removeItems, function(item) {
+        return item.$thumbnailElement[0];
+    });
 
     // Remove all old elements
     _.forEach(removeItems, function(item) {
         let $element = item.$thumbnailElement;
         item.$thumbnailElement = null;
-
-        $element.remove();
-        $grid.masonry('remove', $element).masonry('layout');
     });
 
     // Add all new elements
     _.forEach(addItems, function(item) {
-        let $element = $(item.html.thumbnail).prependTo($grid);
+        let $element = $(item.html.thumbnail);
         item.$thumbnailElement = $element;
-        $grid.masonry('prepended', $element).masonry('layout');
+        //$grid.masonry('appended', $element);
     });
 
-    $grid.masonry('layout');
-    $grid.imagesLoaded().progress(function() {
-        $grid.masonry('layout');
+    let addElements = _.map(addItems, function(item) {
+        return item.$thumbnailElement[0];
     });
+
+    $grid
+    .masonry('remove', removeElements)
+    .prepend(addElements)
+    .masonry('prepended', addElements)
+    .masonry('layout')
+    .imagesLoaded().progress(masonryLayout);
 
     $('.category-item').removeClass('active');
     if(_.keys(selected.categories).length === 0) {
@@ -242,6 +249,15 @@ function filterItems() {
             $('.category-item[name="'+category+'"]').addClass('active');
         });
     }
+}
+
+
+function filter(object, key) {
+    return this.hasOwnProperty(key);
+}
+
+function masonryLayout() {
+    $grid.masonry('layout');
 }
 
 
@@ -271,11 +287,6 @@ function filterItem(item) {
         return true;
     }
 
-    // _.forEach(item.categories, cat=>{
-    //     if (_.includes(_.keys(selected.categories), cat)){
-    //         return true
-    //     }
-    // })
     for (let i = 0; i < item.categories.length; i++) {
         if(_.has(selected.categories, item.categories[i])) {
             return true;
