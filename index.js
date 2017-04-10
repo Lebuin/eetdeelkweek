@@ -88,12 +88,14 @@ let $grid, map, pointsLayer;
 function setEvents(){
 
     $('#left').on('click', '.list-group-item', function(e){
-        // name
-        var name = e.target.getAttribute('name')
+        var category = e.target.getAttribute('name');
+        toggleCategoryFilter(category);
+    });
 
-        toggleCategoryFilter(name)
-
-    })
+    $('#left').on('click', '#location-switch', function(e) {
+        var hasCoordinate = e.target.checked;
+        setHasCoordinateFilter(hasCoordinate);
+    });
 }
 
 
