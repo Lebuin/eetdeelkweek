@@ -8,7 +8,7 @@
 templates = {};
 templates.thumbnail = '\
 <div class="<%= _.join(categories, " ") %> grid-item thumbnail text-center" id="<%= id %>">\
-    <img class="img-responsive" style="margin:0" src="images/<%= image %>" />\
+    <img class="img-responsive" src="images/<%= image %>" />\
     <div class="caption">\
         <h5 style="text-align:center">\
             <%= name %>\
@@ -126,7 +126,7 @@ window.onload = function() {
     $grid = createMasonry();
 
     map = createMap();
-    
+
     pointsLayer.addTo(map)
 
     registerEventListeners();

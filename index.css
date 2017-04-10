@@ -109,7 +109,7 @@ a.list-group-item {
 }
 
 .leaflet-interactive{
-    animation:flow 3s  infinite
+    animation: flow 3s  infinite
 }
 
 
@@ -124,13 +124,18 @@ a.list-group-item {
 .grid-item {
     width: 24%;
     margin: 5px 0.5%;
+    transition: 0.3s ease;
+}
+.grid-item .caption {
+    transition: 0.3s ease;
 }
 
 .grid-item:hover{
-    background-color: #F1F7EA;
-    box-shadow: 2px 2px 5px #888888;
-    transition: 0.3s ease;
-    cursor:pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
+    cursor: pointer;
+}
+.grid-item:hover .caption {
+    background-color: #E8F1F8;
 }
 
 #left {
