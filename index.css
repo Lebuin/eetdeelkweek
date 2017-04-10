@@ -50,7 +50,7 @@ body{
     }
 }
 
-.leaflet-clickable{
+.leaflet-interactive{
     animation:flow 3s  infinite
 }
 

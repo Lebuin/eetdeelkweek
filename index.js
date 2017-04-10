@@ -78,8 +78,9 @@ let selected = {
 
 let items = {}, filteredItems = {};
 
-let $grid, map, pointsLayer;
+let $grid, map;
 
+let pointsLayer = L.layerGroup([], {style: geoJsonMarkerOptions})
 
 /******************
  * setEvents      *
@@ -94,6 +95,8 @@ function setEvents(){
         toggleCategoryFilter(name)
 
     })
+
+    map.on('moveend', function(){console.log('moved'); filterItems()})
 }
 
 
@@ -105,11 +108,14 @@ window.onload = function() {
     $grid = createMasonry();
 
     map = createMap();
+    
+    pointsLayer.addTo(map)
 
     registerEventListeners();
 
     getItems(function(localItems) {
         items = localItems;
+
         filterItems();
     });
 
@@ -201,7 +207,9 @@ function toggleCategoryFilter(category) {
     filterItems();
 }
 
-
+function getColor(categorie){
+    return categories[categorie].color
+}
 function filterItems() {
     let oldFilteredItems = filteredItems;
     filteredItems = _.pickBy(items, filterItem);
@@ -228,6 +236,17 @@ function filterItems() {
     $grid.imagesLoaded().progress(function() {
         $grid.masonry('layout');
     });
+
+    pointsLayer.clearLayers()
+    _.forEach(_.filter(filteredItems, function(o){return o.hasCoordinate}), function(item){
+        pointsLayer.addLayer(L.circleMarker([item.latitude, item.longitude], {
+            radius: 7,
+            weight: 1,
+            opacity:0.3,
+            fillOpacity: 1,
+            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
+        }))
+    })
 }
 
 
@@ -238,8 +257,8 @@ function filterItem(item) {
     }
 
     // Check if items should have a coordinate
-    if(item.hasCoordinate !== selected.hasCoordinate) {
-        return false;
+    if (selected.hasCoordinate & !item.hasCoordinate){
+        return false
     }
 
     // Check if the item is shown on the map
