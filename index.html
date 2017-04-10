@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap-extend.min.css">
     <link rel="stylesheet" href="site.min.css">
 
-    <script src="lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"></script>
     <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
 
     <script src="leaflet.js"></script>
@@ -29,18 +30,26 @@
     <div class="col-md-4 col-sm-4" id="left">
         <div class="panel panel-bordered" id="filter-panel" >
             <div class="panel-body">
-                <h4 class="example-title">Filters<div class="pull-right"><input type="checkbox" class="js-switch" checked>&nbspLocatie</div></h4>
-                <div class="filter-list">
-                    <div class="filter-column">
-                        <a href="javascript:void(0)" class="list-group-item" name="voeding">voeding</a>
-                        <a href="javascript:void(0)" class="list-group-item" name="mobiliteit">mobiliteit</a>
-                        <a href="javascript:void(0)" class="list-group-item" name="wonen">wonen & energie</a>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Filter</h4>
                     </div>
-                    <div class="filter-column">
-                        <a href="javascript:void(0)" class="list-group-item" name="consuminderen">consuminderen</a>
-                        <a href="javascript:void(0)" class="list-group-item" name="ontmoeten">ontmoeten</a>
-                        <!--<a href="javascript:void(0)" class="list-group-item" name="geen categorie">geen categorie</a>-->
+                    <div class="col-md-6">
+                        Heeft locatie
+                        <div id="location-switch" class="material-switch">
+                            <input id="has-location" type="checkbox"/>
+                            <label for="has-location"></label>
+                        </div>
                     </div>
+                </div>
+
+                <div class="row">
+                    <a class="category-item list-group-item col-md-6" name="all">toon alle</a>
+                    <a class="category-item list-group-item col-md-6" name="voeding">voeding</a>
+                    <a class="category-item list-group-item col-md-6" name="mobiliteit">mobiliteit</a>
+                    <a class="category-item list-group-item col-md-6" name="wonen">wonen & energie</a>
+                    <a class="category-item list-group-item col-md-6" name="consuminderen">consuminderen</a>
+                    <a class="category-item list-group-item col-md-6" name="ontmoeten">ontmoeten</a>
                 </div>
             </div>
         </div>

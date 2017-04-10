@@ -187,16 +187,19 @@ function setHasCoordinateFilter(value) {
 
 
 function toggleCategoryFilter(category) {
-    // Only select a single categori
     selected.categories = {};
-    selected.categories[category] = true;
 
-    // Select multiple categories
-    /*if(selected.categories.hasOwnProperty(category)) {
-        delete selected.categories[category];
-    } else {
+    if(category !== 'all') {
+        // Only select a single category
         selected.categories[category] = true;
-    }*/
+
+        // Select multiple categories
+        /*if(selected.categories.hasOwnProperty(category)) {
+            delete selected.categories[category];
+        } else {
+            selected.categories[category] = true;
+        }*/
+    }
 
     filterItems();
 }
@@ -228,6 +231,15 @@ function filterItems() {
     $grid.imagesLoaded().progress(function() {
         $grid.masonry('layout');
     });
+
+    $('.category-item').removeClass('active');
+    if(_.keys(selected.categories).length === 0) {
+        $('.category-item[name="all"]').addClass('active');
+    } else {
+        _.forEach(selected.categories, function(value, category) {
+            $('.category-item[name="'+category+'"]').addClass('active');
+        });
+    }
 }
 
 
