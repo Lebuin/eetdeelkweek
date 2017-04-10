@@ -44,7 +44,10 @@ let modalTemplate = _.template('\
 <div class="caption">\
 <h3 class="text-center">${title}</h3>\
 <p>${description}</p>\
+<p>${address}</p>\
+<a href="${href}">${href}</a>\
 </div>\
+<button class="btn btn-primary pull-right" data-dismiss="modal">Sluit</button>\
 </div>\
 \
 ')
@@ -105,7 +108,7 @@ function setEvents(){
     $("div.grid").on('click','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id')
         let item = items[id]
-        $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name}))
+        $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name, href:item.website, address: item.address}))
         $('#myModal').modal('show')
 
     })
