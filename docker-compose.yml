@@ -1,0 +1,7 @@
+nginx:
+  image: nginx:1.10.3-alpine
+  ports:
+    - "80:80"
+  volumes:
+    - .:/usr/share/nginx/html
+  restart: always
