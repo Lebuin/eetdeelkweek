@@ -7,7 +7,7 @@
 
 templates = {};
 templates.thumbnail = '\
-<div class="<%= _.join(categories, " ") %> grid-item thumbnail" id="<%= id %>">\
+<div class="<%= _.join(categories, " ") %> grid-item thumbnail text-center" id="<%= id %>">\
     <img class="img-responsive" style="margin:0" src="images/<%= image %>" />\
     <div class="caption">\
         <h5 style="text-align:center">\
@@ -38,7 +38,16 @@ for(let key in templates) {
     compileTemplate[key] = _.template(templates[key]);
 }
 
-
+let modalTemplate = _.template('\
+<div class="thumbnail">\
+<img src="images/${src}">\
+<div class="caption">\
+<h3 class="text-center">${title}</h3>\
+<p>${description}</p>\
+</div>\
+</div>\
+\
+')
 
 /********************
  * Global variables *
@@ -96,6 +105,13 @@ function setEvents(){
 
     })
 
+    $("div.grid").on('click','div.grid-item', function(e){
+        let id = $(e.target).closest('div.grid-item').attr('id')
+        let item = items[id]
+        $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name}))
+        $('#myModal').modal('show')
+
+    })
     map.on('moveend', function(){console.log('moved'); filterItems()})
 }
 

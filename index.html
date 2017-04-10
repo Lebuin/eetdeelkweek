@@ -9,7 +9,7 @@
 
     <script src="lodash.min.js"></script>
     <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
-
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 
@@ -61,12 +61,11 @@
     </div>
 
 
-    <div class="modal">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade modal-slide-from-bottom" id="myModal">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header"></div>
-                <div class="modal-body" id="panel"></div>
-                <div class="modal-footer"></div>
+                <div class="modal-header"><button class="close" data-dismiss="modal">x</button></div>
+                <div class="modal-body"></div>
             </div>
         </div>
     </div>
