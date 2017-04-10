@@ -236,10 +236,11 @@ function filterItems() {
 
     $grid
     .masonry('remove', removeElements)
-    .prepend(addElements)
-    .masonry('prepended', addElements)
+    .append(addElements)
+    .masonry('appended', addElements)
     .masonry('layout')
     .imagesLoaded().progress(masonryLayout);
+
 
     $('.category-item').removeClass('active');
     if(_.keys(selected.categories).length === 0) {
