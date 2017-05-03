@@ -272,7 +272,7 @@ function filterItems() {
             opacity:0.3,
             fillOpacity: 1,
             fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
-        }).on('click',()=>loadItem(item.id)))
+        }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name))
     })
     
     $grid
