@@ -81,7 +81,7 @@ let categories = {
 
     ontmoeten: {
         name: 'Ontmoeten',
-        color: 'blue',
+        color: '#3ac403',
     },
 };
 
@@ -95,6 +95,7 @@ let items = {}, filteredItems = {}, groups = {};
 let $grid, map;
 
 let pointsLayer = L.featureGroup([], {style: geoJsonMarkerOptions})
+let hoverLayer = L.circleMarker([0, 0], {radius:1, stroke:1, fillOpacity:1, className: 'hoverLayer'})
 
 /******************
  * setEvents      *
@@ -110,7 +111,12 @@ function setEvents(){
     $("div.grid").on('click','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id')
         loadItem(id)
+    }).on('mouseover','div.grid-item', function(e){
+        let id = $(e.target).closest('div.grid-item').attr('id')
+        hoverAnimation(id)    
     })
+
+
     map.on('moveend', function(){console.log('moved'); filterItems()})
 
     $('#left').on('change', '#has-location', function(e) {
@@ -133,6 +139,7 @@ window.onload = function() {
     map = createMap();
 
     pointsLayer.addTo(map);
+    hoverLayer.addTo(map);
     registerEventListeners();
 
     getItemsAndGroups(function(argItems, argGroups) {
@@ -157,6 +164,13 @@ function registerEventListeners() {
     // })
 }
 
+function hoverAnimation(id){
+    let item = items[id]
+    if (item.latitude){
+        hoverLayer.setLatLng([item.latitude, item.longitude]).setRadius(10)
+        $('.hoverLayer').css('stroke', categories[item.categories[0]].color).css('fill', categories[item.categories[0]].color)
+    }
+}
 
 function createMasonry() {
     let $grid = $('.grid');
@@ -272,7 +286,8 @@ function filterItems() {
             weight: 1,
             opacity:0.3,
             fillOpacity: 1,
-            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
+            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0]),
+            className: 'basic'
         }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name))
     })
 
