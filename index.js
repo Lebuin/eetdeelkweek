@@ -47,7 +47,7 @@ let modalTemplate = _.template('\
 <p>${address}</p>\
 </div>\
 <div class="caption row">\
-<a class="col-md-10" href="${href}">${href}</a>\
+<a class="col-md-10" href="${href}" target="blank">${href}</a>\
 <button class="col-md-2 btn btn-primary pull-right" data-dismiss="modal">Sluit</button>\
 </div>\
 </div>\
@@ -94,7 +94,7 @@ let items = {}, filteredItems = {};
 
 let $grid, map;
 
-let pointsLayer = L.layerGroup([], {style: geoJsonMarkerOptions})
+let pointsLayer = L.featureGroup([], {style: geoJsonMarkerOptions})
 
 /******************
  * setEvents      *
@@ -109,10 +109,7 @@ function setEvents(){
 
     $("div.grid").on('click','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id')
-        let item = items[id]
-        $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name, href:item.website, address: item.address}))
-        $('#myModal').modal('show')
-
+        loadItem(id)
     })
     map.on('moveend', function(){console.log('moved'); filterItems()})
 
@@ -120,6 +117,7 @@ function setEvents(){
         var hasCoordinate = e.target.checked;
         setHasCoordinateFilter(hasCoordinate);
     });
+    
 }
 
 
@@ -133,7 +131,6 @@ window.onload = function() {
     map = createMap();
 
     pointsLayer.addTo(map)
-
     registerEventListeners();
 
     getItems(function(localItems) {
@@ -141,7 +138,6 @@ window.onload = function() {
 
         filterItems();
     });
-
     setEvents();
 };
 
@@ -153,6 +149,9 @@ window.onload = function() {
 
 function registerEventListeners() {
     //TODO: listen on masonry list item hover, map point hover, button clicks,...
+    // pointsLayer.on('click', function(e){
+    //     console.log(this)
+    // })
 }
 
 
@@ -271,9 +270,9 @@ function filterItems() {
             opacity:0.3,
             fillOpacity: 1,
             fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
-        }))
+        }).on('click',()=>loadItem(item.id)))
     })
-
+    
     $grid
     .masonry('remove', removeElements)
     .append(addElements)
@@ -345,6 +344,9 @@ function buildMasonry(items) {
 
 function loadItem(id) {
     //TODO: show the item with 'id' in a modal dialog
+    let item = items[id]
+    $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name, href:item.website, address: item.address}))
+    $('#myModal').modal('show')
 
 }
 
