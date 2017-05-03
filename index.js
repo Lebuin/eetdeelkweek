@@ -281,7 +281,7 @@ function filterItems() {
     .append(addElements)
     .masonry('appended', addElements)
     .masonry('layout')
-    .imagesLoaded().progress(requestasonryLayout);
+    .imagesLoaded().progress(requestMasonryLayout);
 
 
     $('.category-item').removeClass('active');
