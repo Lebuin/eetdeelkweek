@@ -281,7 +281,7 @@ function filterItems() {
     .append(addElements)
     .masonry('appended', addElements)
     .masonry('layout')
-    .imagesLoaded().progress(masonryLayout);
+    .imagesLoaded().progress(requestasonryLayout);
 
 
     $('.category-item').removeClass('active');
@@ -299,8 +299,16 @@ function filter(object, key) {
     return this.hasOwnProperty(key);
 }
 
+var layoutTimeout = null;
+function requestMasonryLayout() {
+    if(!layoutTimeout) {
+        layoutTimeout = setTimeout(masonryLayout, 100);
+    }
+}
+
 function masonryLayout() {
     $grid.masonry('layout');
+    layoutTimeout = null;
 }
 
 
