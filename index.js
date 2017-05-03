@@ -90,7 +90,7 @@ let selected = {
     hasCoordinate: false,
 };
 
-let items = {}, filteredItems = {};
+let items = {}, filteredItems = {}, groups = {};
 
 let $grid, map;
 
@@ -119,7 +119,7 @@ function setEvents(){
             setHasCoordinateFilter(hasCoordinate);
         }, 300);
     });
-    
+
 }
 
 
@@ -132,11 +132,12 @@ window.onload = function() {
 
     map = createMap();
 
-    pointsLayer.addTo(map)
+    pointsLayer.addTo(map);
     registerEventListeners();
 
-    getItems(function(argItems) {
+    getItemsAndGroups(function(argItems, argGroups) {
         items = argItems;
+        groups = argGroups;
 
         filterItems();
     });
@@ -274,7 +275,7 @@ function filterItems() {
             fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
         }).on('click',()=>loadItem(item.id)))
     })
-    
+
     $grid
     .masonry('remove', removeElements)
     .append(addElements)
@@ -354,20 +355,21 @@ function loadItem(id) {
 
 
 
+
 /***************************************
  * Functions to build the items object *
  ***************************************/
 
 
-function getItems(callback) {
+function getItemsAndGroups(callback) {
     // fetch data
     $.ajax({
         type: "GET",
         url: "items.csv",
 
         success: function(response) {
-            let items = getItemsFromResponse(response);
-            callback(items);
+            let val = getItemsAndGroupsFromResponse(response);
+            callback(val.items, val.groups);
         },
 
         error: function (response){
@@ -377,7 +379,7 @@ function getItems(callback) {
 }
 
 
-function getItemsFromResponse(response) {
+function getItemsAndGroupsFromResponse(response) {
     var items = {};
     var groups = {};
 
@@ -392,6 +394,8 @@ function getItemsFromResponse(response) {
 
             if(group) {
                 fillItemFromGroup(item, group);
+                item.group = group;
+                group.children.push(item);
 
             } else {
                 console.error('No group found for item', item);
@@ -411,7 +415,10 @@ function getItemsFromResponse(response) {
         }
     }
 
-    return items;
+    return {
+        items: items,
+        groups: groups,
+    };
 }
 
 
@@ -474,6 +481,7 @@ function getItem(id, header, row) {
         description: description,
 
         isGroup: isGroup,
+        children: [],
         group: group,
 
         hasCoordinate: hasCoordinate,
@@ -490,7 +498,7 @@ function getItem(id, header, row) {
 
 function fillItemFromGroup(item, group) {
     for(let key in group) {
-        if(!item[key]) {
+        if(item[key] === '') {
             item[key] = group[key];
         }
     }
