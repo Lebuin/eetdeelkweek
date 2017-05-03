@@ -110,11 +110,15 @@ function setEvents(){
 
     $("div.grid").on('click','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id')
-        loadItem(id)
-    }).on('mouseover','div.grid-item', function(e){
-        let id = $(e.target).closest('div.grid-item').attr('id')
-        hoverAnimation(id)    
+        loadItem(id);
     })
+    .on('mouseover','div.grid-item', function(e){
+        let id = $(e.target).closest('div.grid-item').attr('id')
+        hoverAnimation(id);
+    })
+    .on('mouseout', 'div.grid-item', function(e) {
+        hoverLayer.setLatLng([0, 0]);
+    });
 
 
     map.on('moveend', function(){console.log('moved'); filterItems()})
