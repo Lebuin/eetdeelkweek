@@ -90,7 +90,7 @@ let selected = {
     hasCoordinate: false,
 };
 
-let items = {}, filteredItems = {};
+let items = {}, filteredItems = {}, groups = {};
 
 let $grid, map;
 
@@ -119,7 +119,7 @@ function setEvents(){
             setHasCoordinateFilter(hasCoordinate);
         }, 300);
     });
-    
+
 }
 
 
@@ -132,11 +132,12 @@ window.onload = function() {
 
     map = createMap();
 
-    pointsLayer.addTo(map)
+    pointsLayer.addTo(map);
     registerEventListeners();
 
-    getItems(function(localItems) {
-        items = localItems;
+    getItemsAndGroups(function(argItems, argGroups) {
+        items = argItems;
+        groups = argGroups;
 
         filterItems();
     });
@@ -274,7 +275,7 @@ function filterItems() {
             fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0])
         }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name))
     })
-    
+
     $grid
     .masonry('remove', removeElements)
     .append(addElements)
@@ -354,20 +355,21 @@ function loadItem(id) {
 
 
 
+
 /***************************************
  * Functions to build the items object *
  ***************************************/
 
 
-function getItems(callback) {
+function getItemsAndGroups(callback) {
     // fetch data
     $.ajax({
         type: "GET",
         url: "items.csv",
 
         success: function(response) {
-            let items = getItemsFromResponse(response);
-            callback(items);
+            let val = getItemsAndGroupsFromResponse(response);
+            callback(val.items, val.groups);
         },
 
         error: function (response){
@@ -377,8 +379,9 @@ function getItems(callback) {
 }
 
 
-function getItemsFromResponse(response) {
+function getItemsAndGroupsFromResponse(response) {
     var items = {};
+    var groups = {};
 
     var rows = CSVToArray(response);
     var header = rows[0];
@@ -387,14 +390,18 @@ function getItemsFromResponse(response) {
         let item = getItem(i, header, rows[i]);
 
         if(item && item.group) {
-            // If the element is in a group: fill up missing properties
-            let success = fillItemFromGroup(item, items);
+            let group = groups[item.group];
 
-            if(!success) {
+            if(group) {
+                fillItemFromGroup(item, group);
+                item.group = group;
+                group.children.push(item);
+
+            } else {
+                console.error('No group found for item', item);
                 item = null;
             }
         }
-
 
         if(item) {
             // Compile templates
@@ -402,10 +409,16 @@ function getItemsFromResponse(response) {
 
             // Store
             items[item.id] = item;
+            if(item.isGroup) {
+                groups[item.name] = item;
+            }
         }
     }
 
-    return items;
+    return {
+        items: items,
+        groups: groups,
+    };
 }
 
 
@@ -414,6 +427,9 @@ function getItem(id, header, row) {
 
     // Categories;
     let categories = element.categorie ? element.categorie.split(',').map(_.trim) : [];
+
+    // Is group
+    let isGroup = !!element['is groep'];
 
     // Group
     let group = element.groep ? element.groep : null;
@@ -464,7 +480,8 @@ function getItem(id, header, row) {
         image: image,
         description: description,
 
-        isGroup: false,
+        isGroup: isGroup,
+        children: [],
         group: group,
 
         hasCoordinate: hasCoordinate,
@@ -479,33 +496,12 @@ function getItem(id, header, row) {
 }
 
 
-function fillItemFromGroup(item, items) {
-    let success = false;
-
-    let groupItems = _.filter(items, function(groupItem) {
-        return groupItem.name === item.group;
-    });
-
-    if(groupItems.length === 0) {
-        console.error('Group not found for item', item);
-
-    } else if(groupItems.length > 1) {
-        console.error('Multiple groups found for item %s:', item, groupItems);
-
-    } else {
-        let groupItem = groupItems[0];
-        groupItem.isGroup = true;
-
-        for(let key in groupItem) {
-            if(!item[key]) {
-                item[key] = groupItem[key];
-            }
+function fillItemFromGroup(item, group) {
+    for(let key in group) {
+        if(item[key] === '') {
+            item[key] = group[key];
         }
-
-        success = true;
     }
-
-    return success;
 }
 
 
