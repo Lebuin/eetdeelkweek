@@ -113,9 +113,11 @@ function setEvents(){
     })
     map.on('moveend', function(){console.log('moved'); filterItems()})
 
-    $('#left').on('click', '#location-switch', function(e) {
-        var hasCoordinate = e.target.checked;
-        setHasCoordinateFilter(hasCoordinate);
+    $('#left').on('change', '#has-location', function(e) {
+        setTimeout(function() {
+            var hasCoordinate = e.target.checked;
+            setHasCoordinateFilter(hasCoordinate);
+        }, 300);
     });
     
 }
