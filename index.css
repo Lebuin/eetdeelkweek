@@ -172,12 +172,16 @@ path.hoverLayer{
     overflow-y: auto;
     padding: 10px 20px;
 }
-#filter-header {
-    margin-bottom: .5em;
+#filter-categories {
+    padding-bottom: 1em;
+    border-bottom: 1px solid #F1F4F5;
+}
+#filter-footer {
+    margin-top: 1em;
 }
 #location-switch {
     display: inline-block;
-    margin: 20px .5em;
+    margin-left: .5em;
 }
 #location-switch label {
     background-color: #62a8ea;

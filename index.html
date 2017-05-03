@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -30,28 +31,23 @@
     <div class="col-md-4 col-sm-4" id="left">
         <div class="panel panel-bordered" id="filter-panel" >
             <div class="panel-body">
-                <div class="row" id="filter-header">
-                    <div class="col-md-6">
-                        <h4>Filter</h4>
-                    </div>
-                    <div class="col-md-4">
-                        Toon initiatieven zonder locatie
-                    </div>
-                    <div class="col-md-2">
-                        <div id="location-switch" class="material-switch">
-                            <input id="has-location" type="checkbox" checked />
-                            <label for="has-location"></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <a class="category-item list-group-item col-md-6" name="all">toon alle</a>
+                <div class="row" id="filter-categories">
+                    <a class="category-item list-group-item col-md-6" name="all">alle categorieën</a>
                     <a class="category-item list-group-item col-md-6" name="voeding">voeding</a>
                     <a class="category-item list-group-item col-md-6" name="mobiliteit">mobiliteit</a>
                     <a class="category-item list-group-item col-md-6" name="wonen">wonen & energie</a>
                     <a class="category-item list-group-item col-md-6" name="consuminderen">consuminderen</a>
                     <a class="category-item list-group-item col-md-6" name="ontmoeten">ontmoeten</a>
+                </div>
+
+                <div class="row" id="filter-footer">
+                    <div class="col-md-12">
+                        Toon ook initiatieven zonder locatie
+                        <div id="location-switch" class="material-switch">
+                            <input id="has-location" type="checkbox" checked />
+                            <label for="has-location"></label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
