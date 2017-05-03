@@ -125,7 +125,7 @@ function setEvents(){
 
     $('#left').on('change', '#has-location', function(e) {
         setTimeout(function() {
-            var hasCoordinate = e.target.checked;
+            var hasCoordinate = !e.target.checked;
             setHasCoordinateFilter(hasCoordinate);
         }, 300);
     });
