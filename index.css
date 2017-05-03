@@ -29,7 +29,7 @@ body {
     margin-top: -8px;
     position:absolute;
     opacity: 0.3;
-    transition: all 0.4s ease-in-out;
+    transition: all 0.3s ease-in-out;
     width: 40px;
 }
 .material-switch > label::after {
@@ -128,15 +128,18 @@ path.hoverLayer{
 .grid-item {
     width: 24%;
     margin: 5px 0.5%;
-    transition: 0.3s ease;
-}
-.grid-item .caption {
-    transition: 0.3s ease;
+
+    transition: box-shadow .3s;
 }
 
 .grid-item:hover{
     box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
     cursor: pointer;
+}
+
+.grid-item .caption {
+    transition: background-color .3s;
+    background-color: white;
 }
 .grid-item:hover .caption {
     background-color: #E8F1F8;
