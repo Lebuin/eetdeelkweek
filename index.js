@@ -112,13 +112,11 @@ function setEvents(){
         let id = $(e.target).closest('div.grid-item').attr('id');
         loadItem(id);
     })
-    .on('mouseover','div.grid-item', function(e){
+    .on('mouseenter','div.grid-item', function(e){
         let id = $(e.target).closest('div.grid-item').attr('id');
-        hoverAnimation(id);
+        hoverAnimationMap(id);
     })
-    .on('mouseout', 'div.grid-item', function(e) {
-        hoverLayer.setLatLng([0, 0]);
-    });
+    .on('mouseout', 'div.grid-item', hoverAnimationMapStop);
 
     $('#left').on('change', '#has-location', function(e) {
         setTimeout(function() {
@@ -165,9 +163,9 @@ function registerEventListeners() {
     // })
 }
 
-function hoverAnimation(id){
+function hoverAnimationMap(id) {
     let item = items[id];
-    if (item.latitude){
+    if(item.latitude){
         hoverLayer.setLatLng([item.latitude, item.longitude]).setRadius(10);
         let color = getColor(item.categories[0]);
         $('.hoverLayer').css({
@@ -176,6 +174,20 @@ function hoverAnimation(id){
         });
     }
 }
+
+function hoverAnimationMapStop() {
+    hoverLayer.setLatLng([0, 0]);
+}
+
+
+function hoverAnimationList(id) {
+    $('.grid .grid-item#'+id).addClass('highlight');
+}
+
+function hoverAnimationListStop() {
+    $('.grid .grid-item').removeClass('highlight');
+}
+
 
 function createMasonry() {
     let $grid = $('.grid');
@@ -285,15 +297,27 @@ function filterItems() {
     });
 
     pointsLayer.clearLayers();
-    _.forEach(_.filter(filteredItems, function(o) { return o.hasCoordinate; }), function(item){
-        pointsLayer.addLayer(L.circleMarker([item.latitude, item.longitude], {
-            radius: 7,
-            weight: 1,
-            opacity:0.3,
-            fillOpacity: 1,
-            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color: getColor(item.categories[0]),
-            className: 'basic'
-        }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name));
+    _.forEach(filteredItems, function(item) {
+        if(item.hasCoordinate) {
+            let point = L.circleMarker([item.latitude, item.longitude], {
+                radius: 7,
+                weight: 1,
+                opacity:0.3,
+                fillOpacity: 1,
+                fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color: getColor(item.categories[0]),
+                className: 'basic'
+            })
+            .on('click', function() {
+                loadItem(item.id);
+            })
+            .on('mouseenter', function() {
+                hoverAnimationList(item.id);
+            })
+            .on('mouseout', hoverAnimationListStop)
+            .bindTooltip(item.name);
+
+            pointsLayer.addLayer(point);
+        }
     });
 
     $grid

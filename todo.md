@@ -1,7 +1,5 @@
 # filters
 
-* filter op categorie + toon alles
-* filter op kaart
 * filter op kaart
 
 # andere

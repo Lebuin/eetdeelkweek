@@ -108,7 +108,7 @@ a.list-group-item {
 }
 
 path.basic{
-    animation: flow 3s  infinite
+    animation: flow 3s infinite
 }
 path.hoverLayer{
     animation: explode 1s infinite;
@@ -143,6 +143,16 @@ path.hoverLayer{
 }
 .grid-item:hover .caption {
     background-color: #E8F1F8;
+}
+
+@keyframes highlight {
+    0% { background-color: white; }
+    40% { background-color: #62a8ea; }
+    80% { background-color: white; }
+    100% { background-color: white; }
+}
+.grid-item.highlight .caption {
+    animation: highlight 2s infinite;
 }
 
 
