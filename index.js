@@ -52,7 +52,7 @@ let modalTemplate = _.template('\
 </div>\
 </div>\
 \
-')
+');
 
 /********************
  * Global variables *
@@ -94,8 +94,8 @@ let items = {}, filteredItems = {}, groups = {};
 
 let $grid, map;
 
-let pointsLayer = L.featureGroup([], {style: geoJsonMarkerOptions})
-let hoverLayer = L.circleMarker([0, 0], {radius:1, stroke:1, fillOpacity:1, className: 'hoverLayer'})
+let pointsLayer = L.featureGroup([], {style: geoJsonMarkerOptions});
+let hoverLayer = L.circleMarker([0, 0], {radius:1, stroke:1, fillOpacity:1, className: 'hoverLayer'});
 
 /******************
  * setEvents      *
@@ -109,19 +109,16 @@ function setEvents(){
     });
 
     $("div.grid").on('click','div.grid-item', function(e){
-        let id = $(e.target).closest('div.grid-item').attr('id')
+        let id = $(e.target).closest('div.grid-item').attr('id');
         loadItem(id);
     })
     .on('mouseover','div.grid-item', function(e){
-        let id = $(e.target).closest('div.grid-item').attr('id')
+        let id = $(e.target).closest('div.grid-item').attr('id');
         hoverAnimation(id);
     })
     .on('mouseout', 'div.grid-item', function(e) {
         hoverLayer.setLatLng([0, 0]);
     });
-
-
-    map.on('moveend', function(){console.log('moved'); filterItems()})
 
     $('#left').on('change', '#has-location', function(e) {
         setTimeout(function() {
@@ -169,10 +166,14 @@ function registerEventListeners() {
 }
 
 function hoverAnimation(id){
-    let item = items[id]
+    let item = items[id];
     if (item.latitude){
-        hoverLayer.setLatLng([item.latitude, item.longitude]).setRadius(10)
-        $('.hoverLayer').css('stroke', categories[item.categories[0]].color).css('fill', categories[item.categories[0]].color)
+        hoverLayer.setLatLng([item.latitude, item.longitude]).setRadius(10);
+        let color = getColor(item.categories[0]);
+        $('.hoverLayer').css({
+            stroke: color,
+            fill: color
+        });
     }
 }
 
@@ -253,8 +254,8 @@ function toggleCategoryFilter(category) {
     filterItems();
 }
 
-function getColor(categorie){
-    return categories[categorie].color
+function getColor(category){
+    return categories[category].color;
 }
 function filterItems() {
     let oldFilteredItems = filteredItems;
@@ -283,17 +284,17 @@ function filterItems() {
         return item.$thumbnailElement[0];
     });
 
-    pointsLayer.clearLayers()
-    _.forEach(_.filter(filteredItems, function(o){return o.hasCoordinate}), function(item){
+    pointsLayer.clearLayers();
+    _.forEach(_.filter(filteredItems, function(o) { return o.hasCoordinate; }), function(item){
         pointsLayer.addLayer(L.circleMarker([item.latitude, item.longitude], {
             radius: 7,
             weight: 1,
             opacity:0.3,
             fillOpacity: 1,
-            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color:getColor(item.categories[0]),
+            fillColor: (_.keys(selected.categories).length>0)?categories[_.keys(selected.categories)[0]].color: getColor(item.categories[0]),
             className: 'basic'
-        }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name))
-    })
+        }).on({'click':()=>loadItem(item.id)}).bindTooltip(item.name));
+    });
 
     $grid
     .masonry('remove', removeElements)
@@ -338,8 +339,8 @@ function filterItem(item) {
     }
 
     // Check if items should have a coordinate
-    if (selected.hasCoordinate & !item.hasCoordinate){
-        return false
+    if (selected.hasCoordinate & !item.hasCoordinate) {
+        return false;
     }
 
     // Check if the item is shown on the map
@@ -374,10 +375,9 @@ function buildMasonry(items) {
 
 function loadItem(id) {
     //TODO: show the item with 'id' in a modal dialog
-    let item = items[id]
-    $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name, href:item.website, address: item.address}))
-    $('#myModal').modal('show')
-
+    let item = items[id];
+    $('#myModal .modal-body').html(modalTemplate({src:item.image, description:item.description, title:item.name, href:item.website, address: item.address}));
+    $('#myModal').modal('show');
 }
 
 
@@ -591,7 +591,7 @@ function CSVToArray( strData, strDelimiter ){
 
     // Keep looping over the regular expression matches
     // until we can no longer find a match.
-    while (arrMatches = objPattern.exec( strData )){
+    while(!!(arrMatches = objPattern.exec(strData))) {
 
         // Get the delimiter that was found.
         var strMatchedDelimiter = arrMatches[ 1 ];
@@ -641,12 +641,3 @@ function CSVToArray( strData, strDelimiter ){
     // Return the parsed data.
     return( arrData );
 }
-
-
-
-
-
-
-
-
-
