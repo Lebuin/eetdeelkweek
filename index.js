@@ -311,7 +311,6 @@ function filterItems() {
                 loadItem(item.id);
             })
             .on('mouseover', function() {
-                debugger;
                 hoverAnimationList(item.id);
             })
             .on('mouseout', hoverAnimationListStop)
