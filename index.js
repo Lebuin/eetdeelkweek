@@ -310,7 +310,8 @@ function filterItems() {
             .on('click', function() {
                 loadItem(item.id);
             })
-            .on('mouseenter', function() {
+            .on('mouseover', function() {
+                debugger;
                 hoverAnimationList(item.id);
             })
             .on('mouseout', hoverAnimationListStop)
