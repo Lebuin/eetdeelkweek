@@ -87,30 +87,24 @@ a.list-group-item {
 
 @keyframes explode {
     0% {
-        Opacity:1;
+        opacity: 1;
         transform: scale(1);
     }
-    100%{
-        Opacity:0;
+    100% {
+        opacity: 0;
         transform: scale(2);
     }
 }
 @keyframes flow {
-    0% {
-        opacity:.5
-    }
-    50% {
-        opacity:1
-    }
-    100% {
-        opacity:0.5
-    }
+    0% { opacity: .5; }
+    50% { opacity: 1; }
+    100% { opacity: .5; }
 }
 
-path.basic{
+path.basic {
     animation: flow 3s infinite
 }
-path.hoverLayer{
+path.hoverLayer {
     animation: explode 1s infinite;
     transform-origin: 50% 50%;
 
@@ -132,7 +126,7 @@ path.hoverLayer{
     transition: box-shadow .3s;
 }
 
-.grid-item:hover{
+.grid-item:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
     cursor: pointer;
 }
@@ -225,6 +219,6 @@ path.hoverLayer{
     margin: 0;
 }
 
-#myModal img{
+#myModal img {
     max-height:400px;
 }
